@@ -1,4 +1,4 @@
-package com.lending.app.service.impl;
+package com.lending.app.service;
 
 import com.lending.app.exception.AlreadyExistsException;
 import com.lending.app.exception.NotFoundException;
@@ -8,6 +8,7 @@ import com.lending.app.model.record.user.CreateUserCommand;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.repository.UserRepository;
+import com.lending.app.service.impl.UserServiceImpl;
 import com.lending.app.util.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService Tests")
-class UserServiceImplTest {
+class UserServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private UserMapper userMapper;

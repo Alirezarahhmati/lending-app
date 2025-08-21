@@ -1,4 +1,4 @@
-package com.lending.app.service.impl;
+package com.lending.app.service;
 
 import com.lending.app.exception.AlreadyExistsException;
 import com.lending.app.exception.UnauthorizedException;
@@ -8,6 +8,7 @@ import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
+import com.lending.app.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService Tests")
-class AuthServiceImplTest {
+class AuthServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private PasswordEncoder passwordEncoder;

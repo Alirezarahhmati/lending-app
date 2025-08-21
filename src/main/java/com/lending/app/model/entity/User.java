@@ -9,11 +9,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "users")
+@Table(name = "users", indexes = {@Index(name = "idx_username", columnList = "username")})
 public class User extends BaseEntity implements UserDetails {
 
     @Column(unique = true, nullable = false)
@@ -28,6 +29,8 @@ public class User extends BaseEntity implements UserDetails {
 
     @Column(nullable = false)
     private int score;
+
+    private LocalDateTime deletedAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
