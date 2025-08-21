@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public UserMessage getById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> UserNotFoundException.forId(id));

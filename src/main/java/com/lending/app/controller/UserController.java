@@ -23,14 +23,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<UserMessage> create(@RequestBody CreateUserCommand command) {
-        log.info("Received request to create user: {}", command.username());
-        UserMessage created = userService.create(command);
-        log.info("User creation endpoint completed for ID: {}", created.id());
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<UserMessage> getById(@PathVariable UUID id) {
         log.debug("Received request to get user by ID: {}", id);
