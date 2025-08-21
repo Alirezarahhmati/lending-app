@@ -1,4 +1,4 @@
-package com.lending.app.service.impl;
+package com.lending.app.application.service.impl;
 
 import com.lending.app.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;

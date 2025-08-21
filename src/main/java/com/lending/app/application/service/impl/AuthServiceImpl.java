@@ -1,4 +1,4 @@
-package com.lending.app.service.impl;
+package com.lending.app.application.service.impl;
 
 import com.lending.app.exception.UnauthorizedException;
 import com.lending.app.model.entity.User;
@@ -8,7 +8,7 @@ import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
-import com.lending.app.service.AuthService;
+import com.lending.app.application.service.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

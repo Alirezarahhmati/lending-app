@@ -2,9 +2,13 @@ package com.lending.app.model.entity;
 
 import com.lending.app.model.entity.base.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 @Entity
 @Table
 public class LoanTransaction extends BaseEntity {

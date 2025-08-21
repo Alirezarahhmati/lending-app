@@ -1,4 +1,4 @@
-package com.lending.app.service;
+package com.lending.app.application.service;
 
 import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;

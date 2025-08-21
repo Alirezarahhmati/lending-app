@@ -1,4 +1,4 @@
-package com.lending.app.service.impl;
+package com.lending.app.application.service.impl;
 
 import com.lending.app.exception.NotFoundException;
 import com.lending.app.mapper.LoanMapper;
@@ -7,7 +7,7 @@ import com.lending.app.model.record.loan.LoanMessage;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 import com.lending.app.repository.LoanRepository;
-import com.lending.app.service.LoanService;
+import com.lending.app.application.service.LoanService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,8 +51,12 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public LoanMessage get(String id) {
+        return loanMapper.toMessage(getLoan(id));
+    }
+
+    @Override
+    public Loan getLoan(String id) {
         return loanRepository.findById(id)
-                .map(loanMapper::toMessage)
                 .orElseThrow(() -> new NotFoundException("Loan"));
     }
 

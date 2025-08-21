@@ -1,17 +1,20 @@
-package com.lending.app.service;
+package com.lending.app.application.service;
 
+import com.lending.app.model.entity.User;
 import com.lending.app.model.record.user.CreateUserCommand;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface UserService {
-    UserMessage create(CreateUserCommand command);
-    UserMessage getById();
+    UserMessage save(CreateUserCommand command);
+    UserMessage get();
+    User getUser(String id);
     List<UserMessage> getAll();
     UserMessage update(UpdateUserCommand command);
+    UserMessage decreaseScore(String userId, Integer score);
+    UserMessage increaseScore(String userId, Integer score);
     void delete();
 }
 

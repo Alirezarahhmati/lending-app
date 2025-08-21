@@ -1,16 +1,15 @@
-package com.lending.app.service.impl;
+package com.lending.app.application.service.impl;
 
 import com.lending.app.model.record.user.CreateUserCommand;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.model.entity.User;
 import com.lending.app.repository.UserRepository;
-import com.lending.app.service.UserService;
+import com.lending.app.application.service.UserService;
 import com.lending.app.mapper.UserMapper;
 import com.lending.app.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,7 +17,6 @@ import com.lending.app.exception.NotFoundException;
 import com.lending.app.exception.AlreadyExistsException;
 
 @Service
-@Transactional
 @Slf4j
 public class UserServiceImpl implements UserService {
 
@@ -31,7 +29,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserMessage create(CreateUserCommand command) {
+    public UserMessage save(CreateUserCommand command) {
         if (userRepository.existsByUsername(command.username())) {
             throw new AlreadyExistsException(command.username());
         }
@@ -47,12 +45,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserMessage getById() {
+    public UserMessage get() {
         String id = SecurityUtils.getCurrentUserId();
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User"));
+        return userMapper.toMessage(getUser(id));
+    }
 
-        return userMapper.toMessage(user);
+    @Override
+    public User getUser(String id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("user"));
     }
 
     @Override
@@ -63,8 +64,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserMessage update(UpdateUserCommand command) {
         String id = SecurityUtils.getCurrentUserId();
-        User existing = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User"));
+        User existing = getUser(id);
                 
         if (command.username() != null && !existing.getUsername().equals(command.username()) && userRepository.existsByUsername(command.username())) {
             throw new AlreadyExistsException("Username");
@@ -77,6 +77,20 @@ public class UserServiceImpl implements UserService {
         User saved = userRepository.save(existing);
 
         return userMapper.toMessage(saved);
+    }
+
+    @Override
+    public UserMessage decreaseScore(String userId, Integer score) {
+        User user = getUser(userId);
+        user.setScore(user.getScore() - score);
+        return userMapper.toMessage(userRepository.save(user));
+    }
+
+    @Override
+    public UserMessage increaseScore(String userId, Integer score) {
+        User user = getUser(userId);
+        user.setScore(user.getScore() + score);
+        return userMapper.toMessage(userRepository.save(user));
     }
 
     @Override

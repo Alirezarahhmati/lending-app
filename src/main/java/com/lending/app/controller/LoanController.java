@@ -1,10 +1,10 @@
 package com.lending.app.controller;
 
+import com.lending.app.application.service.LoanService;
 import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.loan.LoanMessage;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
-import com.lending.app.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

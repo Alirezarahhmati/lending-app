@@ -8,7 +8,7 @@ import com.lending.app.model.record.user.CreateUserCommand;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.repository.UserRepository;
-import com.lending.app.service.impl.UserServiceImpl;
+import com.lending.app.application.service.impl.UserServiceImpl;
 import com.lending.app.util.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -60,7 +60,7 @@ class UserServiceTest {
             when(userRepository.save(any(User.class))).thenReturn(entity);
             when(userMapper.toMessage(entity)).thenReturn(message);
 
-            UserMessage res = userService.create(command);
+            UserMessage res = userService.save(command);
 
             assertThat(res).isEqualTo(message);
         }
@@ -70,7 +70,7 @@ class UserServiceTest {
             CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10);
             when(userRepository.existsByUsername("ali")).thenReturn(true);
 
-            assertThatThrownBy(() -> userService.create(command)).isInstanceOf(AlreadyExistsException.class);
+            assertThatThrownBy(() -> userService.save(command)).isInstanceOf(AlreadyExistsException.class);
         }
 
         @Test
@@ -79,7 +79,7 @@ class UserServiceTest {
             when(userRepository.existsByUsername("ali")).thenReturn(false);
             when(userRepository.existsByEmail("ali@example.com")).thenReturn(true);
 
-            assertThatThrownBy(() -> userService.create(command)).isInstanceOf(AlreadyExistsException.class);
+            assertThatThrownBy(() -> userService.save(command)).isInstanceOf(AlreadyExistsException.class);
         }
     }
 
@@ -93,7 +93,7 @@ class UserServiceTest {
                 when(userRepository.findById("01HUID")).thenReturn(Optional.of(entity));
                 when(userMapper.toMessage(entity)).thenReturn(message);
 
-                UserMessage res = userService.getById();
+                UserMessage res = userService.get();
                 assertThat(res).isEqualTo(message);
             }
         }
@@ -104,7 +104,7 @@ class UserServiceTest {
                 mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01MISSING");
                 when(userRepository.findById("01MISSING")).thenReturn(Optional.empty());
 
-                assertThatThrownBy(() -> userService.getById()).isInstanceOf(NotFoundException.class);
+                assertThatThrownBy(() -> userService.get()).isInstanceOf(NotFoundException.class);
             }
         }
     }
@@ -149,7 +149,8 @@ class UserServiceTest {
                 when(userRepository.existsById("01HUID")).thenReturn(true);
 
                 userService.delete();
-                verify(userRepository).deleteById("01HUID");
+
+                verify(userRepository).softDeleteById("01HUID");
             }
         }
 

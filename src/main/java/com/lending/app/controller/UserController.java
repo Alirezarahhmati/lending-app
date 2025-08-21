@@ -1,9 +1,9 @@
 package com.lending.app.controller;
 
+import com.lending.app.application.service.UserService;
 import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
-import com.lending.app.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,7 +26,7 @@ public class UserController {
     @GetMapping
     public ResponseEntity<BaseResponse<UserMessage>> getById() {
         log.debug("Received request to get user");
-        UserMessage user = userService.getById();
+        UserMessage user = userService.get();
         log.debug("User received endpoint completed for ID: {}", user.id());
         return BaseResponse.success(user);
     }

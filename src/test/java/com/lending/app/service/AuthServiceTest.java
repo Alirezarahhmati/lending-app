@@ -8,7 +8,7 @@ import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
-import com.lending.app.service.impl.AuthServiceImpl;
+import com.lending.app.application.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
