@@ -1,17 +1,13 @@
 package com.lending.app.entity;
 
+import com.lending.app.entity.base.BaseEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table
-public class LoanTransaction {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class LoanTransaction extends BaseEntity {
 
     @ManyToOne(optional = false)
     private User borrower;

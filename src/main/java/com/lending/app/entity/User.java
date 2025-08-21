@@ -1,8 +1,8 @@
 package com.lending.app.entity;
 
+import com.lending.app.entity.base.BaseEntity;
 import jakarta.persistence.*;
 
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,11 +21,7 @@ import java.util.Collections;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User implements UserDetails {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class User extends BaseEntity implements UserDetails {
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -64,4 +60,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
 }
