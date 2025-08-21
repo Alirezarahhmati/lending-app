@@ -9,10 +9,10 @@ import java.util.UUID;
 
 public interface UserService {
     UserMessage create(CreateUserCommand command);
-    UserMessage getById(UUID id);
+    UserMessage getById();
     List<UserMessage> getAll();
-    UserMessage update(UUID id, UpdateUserCommand command);
-    void delete(UUID id);
+    UserMessage update(UpdateUserCommand command);
+    void delete();
 }
 
 

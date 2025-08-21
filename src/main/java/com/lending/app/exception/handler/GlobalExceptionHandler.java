@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 @Slf4j
@@ -38,6 +40,26 @@ public class GlobalExceptionHandler {
                 ResponseCode.INTERNAL_SERVER_ERROR.getCode(),
                 ResponseCode.INTERNAL_SERVER_ERROR.getMessage()
         );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<BaseResponse<?>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .findFirst()
+                .orElse(ResponseCode.VALIDATION_EXCEPTION.getMessage());
+        log.warn("Validation error: {}", message);
+        return BaseResponse.error(HttpStatus.BAD_REQUEST, ResponseCode.VALIDATION_EXCEPTION.getCode(), message);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<BaseResponse<?>> handleConstraintViolation(ConstraintViolationException ex) {
+        String message = ex.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .findFirst()
+                .orElse(ResponseCode.VALIDATION_EXCEPTION.getMessage());
+        log.warn("Constraint violation: {}", message);
+        return BaseResponse.error(HttpStatus.BAD_REQUEST, ResponseCode.VALIDATION_EXCEPTION.getCode(), message);
     }
 
     private ResponseEntity<BaseResponse<?>> build(BaseException ex, HttpStatus status) {

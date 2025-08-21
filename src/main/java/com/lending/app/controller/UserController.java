@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,10 +24,10 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<UserMessage>> getById(@PathVariable UUID id) {
-        log.debug("Received request to get user by ID: {}", id);
-        UserMessage user = userService.getById(id);
+    @GetMapping
+    public ResponseEntity<BaseResponse<UserMessage>> getById() {
+        log.debug("Received request to get user");
+        UserMessage user = userService.getById();
         log.debug("User received endpoint completed for ID: {}", user.id());
         return BaseResponse.success(user);
     }
@@ -39,20 +40,20 @@ public class UserController {
         return BaseResponse.success(users);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BaseResponse<UserMessage>> update(@PathVariable UUID id, @RequestBody UpdateUserCommand command) {
-        log.info("Received request to update user with ID: {}", id);
-        UserMessage updated = userService.update(id, command);
+    @PutMapping
+    public ResponseEntity<BaseResponse<UserMessage>> update(@Valid @RequestBody UpdateUserCommand command) {
+        log.info("Received request to update user");
+        UserMessage updated = userService.update(command);
         log.info("User update endpoint completed for ID: {}", updated.id());
         return BaseResponse.success(updated);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
-        log.info("Received request to delete user with ID: {}", id);
-        userService.delete(id);
-        log.info("User deletion endpoint completed for ID: {}", id);
+    public void delete() {
+        log.info("Received request to delete user");
+        userService.delete();
+        log.info("User deletion endpoint completed");
     }
 }
 

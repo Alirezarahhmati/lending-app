@@ -3,7 +3,7 @@ package com.lending.app.service.impl;
 import com.lending.app.exception.UnauthorizedException;
 import com.lending.app.model.entity.User;
 import com.lending.app.exception.AlreadyExistsException;
-import com.lending.app.model.record.auth.AuthResponse;
+import com.lending.app.model.record.auth.AuthMessage;
 import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.repository.UserRepository;
@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse signUp(SignUpCommand command) {
+    public AuthMessage signUp(SignUpCommand command) {
         if (userRepository.existsByUsername(command.username())) {
             throw new AlreadyExistsException(command.username());
         }
@@ -50,11 +50,11 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(toSave);
 
         String token = jwtService.generateToken(toSave.getUsername(), Map.of("uid", String.valueOf(toSave.getId())));
-        return new AuthResponse(token);
+        return new AuthMessage(token);
     }
 
     @Override
-    public AuthResponse signIn(SignInCommand command) {
+    public AuthMessage signIn(SignInCommand command) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(command.username(), command.password())
@@ -63,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new UnauthorizedException();
             }
             String token = jwtService.generateToken(command.username(), Map.of());
-            return new AuthResponse(token);
+            return new AuthMessage(token);
         } catch (AuthenticationException ex) {
             throw new UnauthorizedException();
         }

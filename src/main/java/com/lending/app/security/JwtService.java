@@ -1,5 +1,6 @@
 package com.lending.app.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
@@ -10,6 +11,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import javax.crypto.SecretKey;
+import java.util.function.Function;
 
 @Service
 public class JwtService {
@@ -38,6 +40,11 @@ public class JwtService {
     }
 
     public String extractUsername(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        return claimsResolver.apply(claims);
     }
 }

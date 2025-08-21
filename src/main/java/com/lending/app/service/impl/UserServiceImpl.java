@@ -7,12 +7,13 @@ import com.lending.app.model.entity.User;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.service.UserService;
 import com.lending.app.mapper.UserMapper;
+import com.lending.app.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
+
 import com.lending.app.exception.NotFoundException;
 import com.lending.app.exception.AlreadyExistsException;
 
@@ -46,7 +47,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserMessage getById(UUID id) {
+    public UserMessage getById() {
+        String id = SecurityUtils.getCurrentUserId();
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User"));
 
@@ -59,7 +61,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserMessage update(UUID id, UpdateUserCommand command) {
+    public UserMessage update(UpdateUserCommand command) {
+        String id = SecurityUtils.getCurrentUserId();
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User"));
                 
@@ -77,7 +80,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(UUID id) {
+    public void delete() {
+        String id = SecurityUtils.getCurrentUserId();
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("User");
         }
