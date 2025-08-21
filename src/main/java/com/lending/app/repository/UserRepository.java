@@ -1,6 +1,6 @@
 package com.lending.app.repository;
 
-import com.lending.app.entity.User;
+import com.lending.app.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

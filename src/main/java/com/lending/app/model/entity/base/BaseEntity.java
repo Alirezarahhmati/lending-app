@@ -1,4 +1,4 @@
-package com.lending.app.entity.base;
+package com.lending.app.model.entity.base;
 
 import de.huxhorn.sulky.ulid.ULID;
 import jakarta.persistence.*;
@@ -20,8 +20,7 @@ public abstract class BaseEntity {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
+    public BaseEntity() {
         this.id = new ULID().nextULID();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;

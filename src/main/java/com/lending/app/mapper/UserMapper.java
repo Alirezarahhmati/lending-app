@@ -1,9 +1,9 @@
 package com.lending.app.mapper;
 
-import com.lending.app.message.user.CreateUserCommand;
-import com.lending.app.message.user.UpdateUserCommand;
-import com.lending.app.message.user.UserMessage;
-import com.lending.app.entity.User;
+import com.lending.app.model.record.user.CreateUserCommand;
+import com.lending.app.model.record.user.UpdateUserCommand;
+import com.lending.app.model.record.user.UserMessage;
+import com.lending.app.model.entity.User;
 import org.mapstruct.*;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)

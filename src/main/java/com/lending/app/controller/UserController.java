@@ -1,7 +1,8 @@
 package com.lending.app.controller;
 
-import com.lending.app.message.user.UpdateUserCommand;
-import com.lending.app.message.user.UserMessage;
+import com.lending.app.model.record.base.BaseResponse;
+import com.lending.app.model.record.user.UpdateUserCommand;
+import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,27 +24,27 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserMessage> getById(@PathVariable UUID id) {
+    public ResponseEntity<BaseResponse<UserMessage>> getById(@PathVariable UUID id) {
         log.debug("Received request to get user by ID: {}", id);
         UserMessage user = userService.getById(id);
         log.debug("User received endpoint completed for ID: {}", user.id());
-        return ResponseEntity.ok(user);
+        return BaseResponse.success(user);
     }
 
     @GetMapping
-    public ResponseEntity<List<UserMessage>> getAll() {
+    public ResponseEntity<BaseResponse<List<UserMessage>>> getAll() {
         log.debug("Received request to get all users");
         List<UserMessage> users = userService.getAll();
         log.debug("User received endpoint completed for all users: {}", users);
-        return ResponseEntity.ok(users);
+        return BaseResponse.success(users);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserMessage> update(@PathVariable UUID id, @RequestBody UpdateUserCommand command) {
+    public ResponseEntity<BaseResponse<UserMessage>> update(@PathVariable UUID id, @RequestBody UpdateUserCommand command) {
         log.info("Received request to update user with ID: {}", id);
         UserMessage updated = userService.update(id, command);
         log.info("User update endpoint completed for ID: {}", updated.id());
-        return ResponseEntity.ok(updated);
+        return BaseResponse.success(updated);
     }
 
     @DeleteMapping("/{id}")

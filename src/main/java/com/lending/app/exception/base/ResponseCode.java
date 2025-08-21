@@ -9,9 +9,10 @@ public enum ResponseCode {
     SUCCESS(0, "Success"),
 
     // Client errors
-    VALIDATION_EXCEPTION(-1, "Validation exception"),
-    ALREADY_EXISTS_EXCEPTION(-2, "%s already exists"),
-    NOT_FOUND_EXCEPTION(-3, "%s not found"),
+    UNAUTHORIZED(-1, "Unauthorized"),
+    VALIDATION_EXCEPTION(-2, "Validation exception"),
+    ALREADY_EXISTS_EXCEPTION(-3, "%s already exists"),
+    NOT_FOUND_EXCEPTION(-4, "%s not found"),
     AUTHENTICATION_EXCEPTION(-3, "Authentication exception"),
 
     // Server errors

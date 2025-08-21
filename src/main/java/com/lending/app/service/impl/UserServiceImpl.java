@@ -1,9 +1,9 @@
 package com.lending.app.service.impl;
 
-import com.lending.app.message.user.CreateUserCommand;
-import com.lending.app.message.user.UpdateUserCommand;
-import com.lending.app.message.user.UserMessage;
-import com.lending.app.entity.User;
+import com.lending.app.model.record.user.CreateUserCommand;
+import com.lending.app.model.record.user.UpdateUserCommand;
+import com.lending.app.model.record.user.UserMessage;
+import com.lending.app.model.entity.User;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.service.UserService;
 import com.lending.app.mapper.UserMapper;

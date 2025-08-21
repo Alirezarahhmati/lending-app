@@ -1,7 +1,7 @@
-package com.lending.app.entity;
+package com.lending.app.model.entity;
 
-import com.lending.app.entity.base.BaseEntity;
-import com.lending.app.enums.ScoreTransactionType;
+import com.lending.app.model.entity.base.BaseEntity;
+import com.lending.app.model.enums.ScoreTransactionType;
 import jakarta.persistence.*;
 
 @Entity

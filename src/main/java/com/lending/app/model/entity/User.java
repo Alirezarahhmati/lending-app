@@ -1,26 +1,19 @@
-package com.lending.app.entity;
+package com.lending.app.model.entity;
 
-import com.lending.app.entity.base.BaseEntity;
+import com.lending.app.model.entity.base.BaseEntity;
 import jakarta.persistence.*;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
+@Data
 @Entity
+@EqualsAndHashCode(callSuper = true)
 @Table(name = "users")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class User extends BaseEntity implements UserDetails {
 
     @Column(unique = true, nullable = false)

@@ -1,6 +1,6 @@
-package com.lending.app.entity;
+package com.lending.app.model.entity;
 
-import com.lending.app.entity.base.BaseEntity;
+import com.lending.app.model.entity.base.BaseEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

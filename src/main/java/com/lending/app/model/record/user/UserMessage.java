@@ -1,9 +1,7 @@
-package com.lending.app.message.user;
-
-import java.util.UUID;
+package com.lending.app.model.record.user;
 
 public record UserMessage(
-        UUID id,
+        String id,
         String username,
         String email,
         int score

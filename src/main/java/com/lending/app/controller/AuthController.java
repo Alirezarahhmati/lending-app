@@ -1,8 +1,9 @@
 package com.lending.app.controller;
 
-import com.lending.app.message.auth.AuthResponse;
-import com.lending.app.message.auth.SignInCommand;
-import com.lending.app.message.auth.SignUpCommand;
+import com.lending.app.model.record.auth.AuthResponse;
+import com.lending.app.model.record.auth.SignInCommand;
+import com.lending.app.model.record.auth.SignUpCommand;
+import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,12 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> signUp(@RequestBody SignUpCommand command) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.signUp(command));
+    public ResponseEntity<BaseResponse<AuthResponse>> signUp(@RequestBody SignUpCommand command) {
+        return BaseResponse.success(authService.signUp(command));
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<AuthResponse> signIn(@RequestBody SignInCommand command) {
-        return ResponseEntity.ok(authService.signIn(command));
+    public ResponseEntity<BaseResponse<AuthResponse>> signIn(@RequestBody SignInCommand command) {
+        return BaseResponse.success(authService.signIn(command));
     }
 }

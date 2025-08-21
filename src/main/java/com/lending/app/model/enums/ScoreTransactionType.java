@@ -1,4 +1,4 @@
-package com.lending.app.enums;
+package com.lending.app.model.enums;
 
 public enum ScoreTransactionType {
     SIGNUP_BONUS,

@@ -1,4 +1,4 @@
-package com.lending.app.message.user;
+package com.lending.app.model.record.user;
 
 public record UpdateUserCommand(
         String username,

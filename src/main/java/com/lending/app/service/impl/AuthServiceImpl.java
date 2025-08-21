@@ -1,17 +1,18 @@
 package com.lending.app.service.impl;
 
-import com.lending.app.entity.User;
+import com.lending.app.exception.UnauthorizedException;
+import com.lending.app.model.entity.User;
 import com.lending.app.exception.AlreadyExistsException;
-import com.lending.app.message.auth.AuthResponse;
-import com.lending.app.message.auth.SignInCommand;
-import com.lending.app.message.auth.SignUpCommand;
+import com.lending.app.model.record.auth.AuthResponse;
+import com.lending.app.model.record.auth.SignInCommand;
+import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
 import com.lending.app.service.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,15 +39,14 @@ public class AuthServiceImpl implements AuthService {
             throw new AlreadyExistsException(command.username());
         }
         if (userRepository.existsByEmail(command.email())) {
-            throw new EmailAlreadyExistsException(command.email());
+            throw new AlreadyExistsException("Email");
         }
 
-        User toSave = User.builder()
-                .username(command.username())
-                .password(passwordEncoder.encode(command.password()))
-                .email(command.email())
-                .score(0)
-                .build();
+        User toSave = new User();
+        toSave.setUsername(command.username());
+        toSave.setPassword(passwordEncoder.encode(command.password()));
+        toSave.setEmail(command.email());
+        toSave.setScore(0);
         userRepository.save(toSave);
 
         String token = jwtService.generateToken(toSave.getUsername(), Map.of("uid", String.valueOf(toSave.getId())));
@@ -55,13 +55,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse signIn(SignInCommand command) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(command.username(), command.password())
-        );
-        if (!authentication.isAuthenticated()) {
-            throw new BadCredentialsException("Invalid credentials");
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(command.username(), command.password())
+            );
+            if (!authentication.isAuthenticated()) {
+                throw new UnauthorizedException();
+            }
+            String token = jwtService.generateToken(command.username(), Map.of());
+            return new AuthResponse(token);
+        } catch (AuthenticationException ex) {
+            throw new UnauthorizedException();
         }
-        String token = jwtService.generateToken(command.username(), Map.of());
-        return new AuthResponse(token);
     }
 }

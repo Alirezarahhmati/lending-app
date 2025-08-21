@@ -1,4 +1,4 @@
-package com.lending.app.message.base;
+package com.lending.app.model.record.base;
 
 
 import com.lending.app.exception.base.ResponseCode;
