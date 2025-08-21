@@ -1,8 +1,8 @@
 package com.lending.app.service.impl;
 
-import com.lending.app.record.user.CreateUserCommand;
-import com.lending.app.record.user.UpdateUserCommand;
-import com.lending.app.record.user.UserMessage;
+import com.lending.app.message.user.CreateUserCommand;
+import com.lending.app.message.user.UpdateUserCommand;
+import com.lending.app.message.user.UserMessage;
 import com.lending.app.entity.User;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.service.UserService;
@@ -13,9 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import com.lending.app.exception.UserNotFoundException;
-import com.lending.app.exception.UsernameAlreadyExistsException;
-import com.lending.app.exception.EmailAlreadyExistsException;
+import com.lending.app.exception.NotFoundException;
+import com.lending.app.exception.AlreadyExistsException;
 
 @Service
 @Transactional
@@ -33,10 +32,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserMessage create(CreateUserCommand command) {
         if (userRepository.existsByUsername(command.username())) {
-            throw new UsernameAlreadyExistsException(command.username());
+            throw new AlreadyExistsException(command.username());
         }
         if (userRepository.existsByEmail(command.email())) {
-            throw new EmailAlreadyExistsException(command.email());
+            throw new AlreadyExistsException("Email");
         }
 
         User saved = userRepository.save(
@@ -47,16 +46,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-//    @Transactional(readOnly = true)
     public UserMessage getById(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> UserNotFoundException.forId(id));
+                .orElseThrow(() -> new NotFoundException("User"));
 
         return userMapper.toMessage(user);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<UserMessage> getAll() {
         return userRepository.findAll().stream().map(userMapper::toMessage).toList();
     }
@@ -64,13 +61,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserMessage update(UUID id, UpdateUserCommand command) {
         User existing = userRepository.findById(id)
-                .orElseThrow(() -> UserNotFoundException.forId(id));
+                .orElseThrow(() -> new NotFoundException("User"));
                 
         if (command.username() != null && !existing.getUsername().equals(command.username()) && userRepository.existsByUsername(command.username())) {
-            throw new UsernameAlreadyExistsException(command.username());
+            throw new AlreadyExistsException("Username");
         }
         if (command.email() != null && !existing.getEmail().equals(command.email()) && userRepository.existsByEmail(command.email())) {
-            throw new EmailAlreadyExistsException(command.email());
+            throw new AlreadyExistsException("Email");
         }
         
         userMapper.apply(command, existing);
@@ -81,9 +78,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(UUID id) {
-        
         if (!userRepository.existsById(id)) {
-            throw UserNotFoundException.forId(id);
+            throw new NotFoundException("User");
         }
         
         userRepository.deleteById(id);

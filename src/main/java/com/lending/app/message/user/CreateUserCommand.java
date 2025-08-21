@@ -1,4 +1,4 @@
-package com.lending.app.record.user;
+package com.lending.app.message.user;
 
 public record CreateUserCommand(
         String username,

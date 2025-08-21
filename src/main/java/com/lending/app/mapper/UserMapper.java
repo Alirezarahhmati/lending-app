@@ -1,8 +1,8 @@
 package com.lending.app.mapper;
 
-import com.lending.app.record.user.CreateUserCommand;
-import com.lending.app.record.user.UpdateUserCommand;
-import com.lending.app.record.user.UserMessage;
+import com.lending.app.message.user.CreateUserCommand;
+import com.lending.app.message.user.UpdateUserCommand;
+import com.lending.app.message.user.UserMessage;
 import com.lending.app.entity.User;
 import org.mapstruct.*;
 

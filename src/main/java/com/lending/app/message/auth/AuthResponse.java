@@ -1,8 +1,8 @@
-package com.lending.app.record.auth;
+package com.lending.app.message.auth;
 
 public record AuthResponse(String token) {}
 
-package com.lending.app.record.auth;
+package com.lending.app.message.auth;
 
 public record AuthResponse(String token) {}
 

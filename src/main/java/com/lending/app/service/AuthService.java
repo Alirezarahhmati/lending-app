@@ -1,8 +1,8 @@
 package com.lending.app.service;
 
-import com.lending.app.record.auth.SignInCommand;
-import com.lending.app.record.auth.SignUpCommand;
-import com.lending.app.record.auth.AuthResponse;
+import com.lending.app.message.auth.SignInCommand;
+import com.lending.app.message.auth.SignUpCommand;
+import com.lending.app.message.auth.AuthResponse;
 
 public interface AuthService {
     AuthResponse signUp(SignUpCommand command);

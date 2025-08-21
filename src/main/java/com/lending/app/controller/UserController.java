@@ -1,8 +1,7 @@
 package com.lending.app.controller;
 
-import com.lending.app.record.user.CreateUserCommand;
-import com.lending.app.record.user.UpdateUserCommand;
-import com.lending.app.record.user.UserMessage;
+import com.lending.app.message.user.UpdateUserCommand;
+import com.lending.app.message.user.UserMessage;
 import com.lending.app.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

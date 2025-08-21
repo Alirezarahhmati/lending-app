@@ -1,11 +1,10 @@
 package com.lending.app.service.impl;
 
 import com.lending.app.entity.User;
-import com.lending.app.exception.EmailAlreadyExistsException;
-import com.lending.app.exception.UsernameAlreadyExistsException;
-import com.lending.app.record.auth.AuthResponse;
-import com.lending.app.record.auth.SignInCommand;
-import com.lending.app.record.auth.SignUpCommand;
+import com.lending.app.exception.AlreadyExistsException;
+import com.lending.app.message.auth.AuthResponse;
+import com.lending.app.message.auth.SignInCommand;
+import com.lending.app.message.auth.SignUpCommand;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
 import com.lending.app.service.AuthService;
@@ -36,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse signUp(SignUpCommand command) {
         if (userRepository.existsByUsername(command.username())) {
-            throw new UsernameAlreadyExistsException(command.username());
+            throw new AlreadyExistsException(command.username());
         }
         if (userRepository.existsByEmail(command.email())) {
             throw new EmailAlreadyExistsException(command.email());
