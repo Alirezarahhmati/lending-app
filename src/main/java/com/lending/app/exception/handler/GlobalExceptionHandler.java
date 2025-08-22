@@ -7,7 +7,6 @@ import com.lending.app.exception.base.BaseException;
 import com.lending.app.exception.base.ResponseCode;
 import com.lending.app.model.record.base.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

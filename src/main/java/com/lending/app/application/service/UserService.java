@@ -15,10 +15,8 @@ public interface UserService {
     List<UserMessage> getAll();
     UserMessage update(UpdateUserCommand command);
     User getUserForUpdate(String id);
-    UserMessage decreaseScore(String userId, Integer score);
-    UserMessage increaseScore(String userId, Integer score);
     void delete();
-    void deleteWithVersion(String id, Long version);
+    void changeScore(User user, int delta);
     Long getCurrentVersion(String id);
 }
 

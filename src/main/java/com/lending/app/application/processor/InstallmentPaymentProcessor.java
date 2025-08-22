@@ -2,13 +2,12 @@ package com.lending.app.application.processor;
 
 import com.lending.app.application.service.InstallmentService;
 import com.lending.app.application.service.LoanTransactionService;
-import com.lending.app.exception.InsufficientException;
 import com.lending.app.exception.NotFoundException;
 import com.lending.app.model.entity.Installment;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
 import com.lending.app.model.record.loan.LoanInstallmentCommand;
-import com.lending.app.util.LoanUtils;
+import com.lending.app.util.calculatorUtils;
 import com.lending.app.util.SecurityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,15 +38,15 @@ public class InstallmentPaymentProcessor {
 
         installment.setPaymentDate(LocalDateTime.now());
         installment.setPaid(true);
-        Installment savedInstallment = installmentService.save(installment);
+        Installment savedInstallment = installmentService.saveAndFlush(installment);
 
         LoanTransaction loanTransaction = installment.getLoanTransaction();
         long paidAmount = loanTransaction.getPaidAmount() + loanTransaction.getLoan().getEachInstallmentAmount();
         loanTransaction.setPaidAmount(paidAmount);
-        boolean isEnd = paidAmount >= LoanUtils.calculateMustPaidAmount(loanTransaction.getLoan().getAmount(), loanTransaction.getLoan().getNumberOfInstallments());
+        boolean isEnd = paidAmount >= calculatorUtils.calculateMustPaidAmount(loanTransaction.getLoan().getAmount(), loanTransaction.getLoan().getNumberOfInstallments());
         if (isEnd)
             loanTransaction.setEndDate(LocalDateTime.now());
-        LoanTransaction savedLoanTransaction = loanTransactionService.save(loanTransaction);
+        LoanTransaction savedLoanTransaction = loanTransactionService.saveAndFlush(loanTransaction);
 
         if (!isEnd)
             installmentAsyncProcessor.createNextInstallment(savedLoanTransaction);

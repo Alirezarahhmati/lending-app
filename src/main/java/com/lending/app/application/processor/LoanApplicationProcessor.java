@@ -9,10 +9,14 @@ import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.entity.User;
 import com.lending.app.model.record.loan.LoanApplicationCommand;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
-import com.lending.app.util.LoanUtils;
+import com.lending.app.util.calculatorUtils;
 import com.lending.app.util.SecurityUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
 
@@ -23,17 +27,19 @@ public class LoanApplicationProcessor {
     private final InstallmentAsyncProcessor installmentAsyncProcessor;
     private final UserService userService;
     private final LoanService loanService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public LoanApplicationProcessor(
             LoanTransactionService loanTransactionService,
             InstallmentAsyncProcessor installmentAsyncProcessor,
             UserService userService,
-            LoanService loanService
+            LoanService loanService, ApplicationEventPublisher applicationEventPublisher
     ) {
         this.loanTransactionService = loanTransactionService;
         this.installmentAsyncProcessor = installmentAsyncProcessor;
         this.userService = userService;
         this.loanService = loanService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Transactional
@@ -42,69 +48,48 @@ public class LoanApplicationProcessor {
         User borrower = userService.getUserForUpdate(borrowerId);
         Loan loan = loanService.getLoan(application.loanId());
 
-        // 1. Create empty transaction
         LoanTransaction transaction = initializeTransaction(loan, borrower);
 
-        // 2. Try borrower-only eligibility
-        if (isBorrowerEligible(borrower, loan)) {
-            approveBorrowerOnly(transaction, borrowerId, loan);
-            installmentAsyncProcessor.createNextInstallment(transaction);
-            return successMessage();
-        }
-
-        // 3. If no guarantor provided → fail
-        if (application.guarantorId() == null || application.guarantorId().isBlank()) {
-            throw new InsufficientScoreException();
-        }
-
-        // 4. Try with guarantor
-        User guarantor = userService.getUserForUpdate(application.guarantorId());
-        if (!isGuarantorEligible(guarantor, loan)) {
-            throw new InsufficientScoreException();
-        }
-
-        approveWithGuarantor(transaction, borrowerId, guarantor, loan);
-        installmentAsyncProcessor.createNextInstallment(transaction);
-        return successMessage();
+        return borrower.getScore() >= loan.getRequiredScore()
+                ? handleBorrower(borrower, loan, transaction)
+                : handleWithGuarantor(application, borrower, loan, transaction);
     }
 
     private LoanTransaction initializeTransaction(Loan loan, User borrower) {
         LoanTransaction transaction = new LoanTransaction();
         transaction.setLoan(loan);
         transaction.setBorrower(borrower);
-        transaction.setPaidAmount(0);
+        transaction.setStartDate(LocalDateTime.now());
         return transaction;
     }
 
-    private boolean isBorrowerEligible(User borrower, Loan loan) {
-        return borrower.getScore() >= loan.getRequiredScore();
+    private LoanApplicationMessage handleBorrower(User borrower, Loan loan, LoanTransaction transaction) {
+        loanTransactionService.saveAndFlush(transaction);
+        userService.changeScore(borrower, -loan.getRequiredScore());
+        installmentAsyncProcessor.createNextInstallment(transaction);
+        return successMessage();
     }
 
-    private void approveBorrowerOnly(LoanTransaction transaction, String borrowerId, Loan loan) {
-        transaction.setStartDate(LocalDateTime.now());
-        loanTransactionService.save(transaction);
-        userService.decreaseScore(borrowerId, loan.getRequiredScore());
-    }
+    private LoanApplicationMessage handleWithGuarantor(LoanApplicationCommand application, User borrower, Loan loan, LoanTransaction transaction) {
+        if (application.guarantorId() == null || application.guarantorId().isBlank()) {
+            throw new InsufficientScoreException();
+        }
 
-    private boolean isGuarantorEligible(User guarantor, Loan loan) {
-        int neededScore = calculateGuarantorScore(loan);
-        return guarantor.getScore() >= neededScore;
-    }
-
-    private void approveWithGuarantor(LoanTransaction transaction, String borrowerId, User guarantor, Loan loan) {
-        int neededFromGuarantor = calculateGuarantorScore(loan);
+        User guarantor = userService.getUserForUpdate(application.guarantorId());
+        int neededFromGuarantor = calculatorUtils.calculateGuarantorScore(loan);
         int neededFromBorrower = loan.getRequiredScore() - neededFromGuarantor;
 
-        userService.decreaseScore(borrowerId, neededFromBorrower);
-        userService.decreaseScore(guarantor.getId(), neededFromGuarantor);
+        if (guarantor.getScore() < neededFromGuarantor) {
+            throw new InsufficientScoreException();
+        }
 
-        transaction.setStartDate(LocalDateTime.now());
+        userService.changeScore(borrower, -neededFromBorrower);
+        userService.changeScore(guarantor, -neededFromGuarantor);
+
         transaction.setGuarantor(guarantor);
-        loanTransactionService.save(transaction);
-    }
-
-    private int calculateGuarantorScore(Loan loan) {
-        return (int) Math.round(loan.getRequiredScore() * 0.1);
+        loanTransactionService.saveAndFlush(transaction);
+        installmentAsyncProcessor.createNextInstallment(transaction);
+        return successMessage();
     }
 
     private LoanApplicationMessage successMessage() {

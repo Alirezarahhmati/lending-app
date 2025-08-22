@@ -4,6 +4,6 @@ import com.lending.app.model.entity.Installment;
 
 public interface InstallmentService {
     Installment save(Installment installment);
-    Integer installmentCountByLoanTransactionId(String loanTransactionId);
+    Installment saveAndFlush(Installment installment);
     Installment findNotPaidInstallmentByLoanTransactionId(String loanTransactionId);
 }

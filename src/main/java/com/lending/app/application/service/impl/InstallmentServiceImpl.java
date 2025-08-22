@@ -21,8 +21,8 @@ public class InstallmentServiceImpl implements InstallmentService {
     }
 
     @Override
-    public Integer installmentCountByLoanTransactionId(String loanTransactionId) {
-        return installmentRepository.countPaidByLoanTransactionId(loanTransactionId);
+    public Installment saveAndFlush(Installment installment) {
+        return installmentRepository.saveAndFlush(installment);
     }
 
     public Installment findNotPaidInstallmentByLoanTransactionId(String loanTransactionId) {

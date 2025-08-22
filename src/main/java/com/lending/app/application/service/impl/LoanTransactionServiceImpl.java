@@ -15,7 +15,7 @@ public class LoanTransactionServiceImpl implements LoanTransactionService {
     }
 
     @Override
-    public LoanTransaction save(LoanTransaction loanTransaction) {
-        return repository.save(loanTransaction);
+    public LoanTransaction saveAndFlush(LoanTransaction loanTransaction) {
+        return repository.saveAndFlush(loanTransaction);
     }
 }

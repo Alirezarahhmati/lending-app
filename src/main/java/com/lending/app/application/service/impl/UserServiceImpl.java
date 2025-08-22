@@ -89,20 +89,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserMessage decreaseScore(String userId, Integer score) {
-        User user = getUser(userId);
-        user.setScore(user.getScore() - score);
-        return userMapper.toMessage(userRepository.save(user));
-    }
-
-    @Override
-    public UserMessage increaseScore(String userId, Integer score) {
-        User user = getUser(userId);
-        user.setScore(user.getScore() + score);
-        return userMapper.toMessage(userRepository.save(user));
-    }
-
-    @Override
     public void delete() {
         String id = SecurityUtils.getCurrentUserId();
         if (!userRepository.existsById(id)) {
@@ -113,12 +99,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteWithVersion(String id, Long version) {
-        int updatedRows = userRepository.softDeleteByIdWithVersion(id, version);
-        if (updatedRows == 0) {
-//            throw new VersionMismatchException("User", id, version, null);
-            throw new NotFoundException("User");
-        }
+    public void changeScore(User user, int delta) {
+        user.setScore(user.getScore() + delta);
+        userRepository.save(user);
     }
 
     @Override

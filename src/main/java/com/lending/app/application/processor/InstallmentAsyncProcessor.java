@@ -6,9 +6,10 @@ import com.lending.app.model.entity.Installment;
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.entity.User;
-import com.lending.app.util.LoanUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
 
@@ -24,18 +25,37 @@ public class InstallmentAsyncProcessor {
     }
 
     @Async("taskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void createNextInstallment(LoanTransaction transaction) {
         Installment installment = new Installment();
         installment.setLoanTransaction(transaction);
         installment.setDueDate(LocalDateTime.now().plusMonths(1));
-        installment.setPaid(false);
         installmentService.save(installment);
     }
 
     @Async("taskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void processInstallmentBonus(Installment installment) {
+        int finalBonus = calculateBonus(installment);
+
+        LoanTransaction loanTransaction = installment.getLoanTransaction();
+        User borrower = loanTransaction.getBorrower();
+
+        if (loanTransaction.getGuarantor() != null) {
+            User guarantor = loanTransaction.getGuarantor();
+            int borrowerBonus = (int) Math.round(finalBonus * 0.9);
+            int guarantorBonus = finalBonus - borrowerBonus;
+
+            userService.changeScore(borrower, borrowerBonus);
+            userService.changeScore(guarantor, guarantorBonus);
+        } else {
+            userService.changeScore(borrower, finalBonus);
+        }
+    }
+
+    private int calculateBonus(Installment installment) {
         Loan loan = installment.getLoanTransaction().getLoan();
-        int bonusScore = loan.getAwardScore() / loan.getNumberOfInstallments();
+        int baseBonus = loan.getAwardScore() / loan.getNumberOfInstallments();
 
         long daysDiff = 0;
         if (installment.getPaymentDate() != null) {
@@ -45,33 +65,15 @@ public class InstallmentAsyncProcessor {
             );
         }
 
-        double penaltyFactor = 1.0 - (0.01 * daysDiff);
+        double factor = 1.0 - (0.01 * daysDiff);
         if (daysDiff < 0) {
-            penaltyFactor = 1.0 + (0.01 * Math.abs(daysDiff));
+            factor = 1.0 + (0.01 * Math.abs(daysDiff));
         }
-        if (penaltyFactor < 0) {
-            penaltyFactor = 0;
-        }
-        int finalBonus = (int) Math.round(bonusScore * penaltyFactor);
-
-        LoanTransaction loanTransaction = installment.getLoanTransaction();
-        User borrower = loanTransaction.getBorrower();
-
-        if (loanTransaction.getGuarantor() != null) {
-            User guarantor = loanTransaction.getGuarantor();
-
-            int borrowerBonus = (int) Math.round(finalBonus * 0.9);
-            int guarantorBonus = (int) Math.round(finalBonus * 0.1);
-
-            borrower.setScore(borrower.getScore() + borrowerBonus);
-            guarantor.setScore(guarantor.getScore() + guarantorBonus);
-
-            userService.save(guarantor);
-        } else {
-            borrower.setScore(borrower.getScore() + finalBonus);
+        if (factor < 0) {
+            factor = 0;
         }
 
-        userService.save(borrower);
+        return (int) Math.round(baseBonus * factor);
     }
 
 }

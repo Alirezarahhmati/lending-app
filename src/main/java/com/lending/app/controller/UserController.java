@@ -26,43 +26,33 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<BaseResponse<UserMessage>> getById() {
-        log.debug("Received request to get user");
         UserMessage user = userService.get();
-        log.debug("User received endpoint completed for ID: {}", user.id());
         return BaseResponse.success(user);
     }
 
     @GetMapping("/all")
     public ResponseEntity<BaseResponse<List<UserMessage>>> getAll() {
-        log.debug("Received request to get all users");
         List<UserMessage> users = userService.getAll();
-        log.debug("User received endpoint completed for all users: {}", users);
         return BaseResponse.success(users);
     }
 
     @GetMapping("/version")
     public ResponseEntity<BaseResponse<Long>> getCurrentVersion() {
-        log.debug("Received request to get current user version");
         String id = SecurityUtils.getCurrentUserId();
         Long version = userService.getCurrentVersion(id);
-        log.debug("User version endpoint completed for ID: {} with version: {}", id, version);
         return BaseResponse.success(version);
     }
 
     @PutMapping
     public ResponseEntity<BaseResponse<UserMessage>> update(@Valid @RequestBody UpdateUserCommand command) {
-        log.info("Received request to update user");
         UserMessage updated = userService.update(command);
-        log.info("User update endpoint completed for ID: {}", updated.id());
         return BaseResponse.success(updated);
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete() {
-        log.info("Received request to delete user");
         userService.delete();
-        log.info("User deletion endpoint completed");
     }
 }
 

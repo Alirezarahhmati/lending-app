@@ -11,36 +11,78 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, String> {
 
-    @Query(value = "SELECT * FROM users WHERE username = :username AND deleted_at IS NULL LIMIT 1", nativeQuery = true)
+    @Query(
+            value = "SELECT * FROM users " +
+                    "WHERE username = :username " +
+                    "AND deleted_at IS NULL " +
+                    "LIMIT 1",
+            nativeQuery = true
+    )
     Optional<User> findByUsername(@Param("username") String username);
 
-    @Query(value = "SELECT CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END FROM users WHERE username = :username AND deleted_at IS NULL", nativeQuery = true)
+    @Query(
+            value = "SELECT CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END " +
+                    "FROM users " +
+                    "WHERE username = :username " +
+                    "AND deleted_at IS NULL",
+            nativeQuery = true
+    )
     boolean existsByUsername(@Param("username") String username);
 
-    @Query(value = "SELECT CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END FROM users WHERE email = :email AND deleted_at IS NULL", nativeQuery = true)
+    @Query(
+            value = "SELECT CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END " +
+                    "FROM users " +
+                    "WHERE email = :email " +
+                    "AND deleted_at IS NULL",
+            nativeQuery = true
+    )
     boolean existsByEmail(@Param("email") String email);
 
     @Override
-    @Query(value = "SELECT * FROM users WHERE id = :id AND deleted_at IS NULL LIMIT 1", nativeQuery = true)
+    @Query(
+            value = "SELECT * FROM users " +
+                    "WHERE id = :id " +
+                    "AND deleted_at IS NULL " +
+                    "LIMIT 1",
+            nativeQuery = true
+    )
     Optional<User> findById(@Param("id") String id);
 
     @Override
-    @Query(value = "SELECT CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END FROM users WHERE id = :id AND deleted_at IS NULL", nativeQuery = true)
+    @Query(
+            value = "SELECT CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END " +
+                    "FROM users " +
+                    "WHERE id = :id " +
+                    "AND deleted_at IS NULL",
+            nativeQuery = true
+    )
     boolean existsById(@Param("id") String id);
 
     @Override
-    @Query(value = "SELECT * FROM users WHERE deleted_at IS NULL", nativeQuery = true)
+    @Query(
+            value = "SELECT * FROM users " +
+                    "WHERE deleted_at IS NULL",
+            nativeQuery = true
+    )
     List<User> findAll();
 
-    @Query(value = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP, version = version + 1 WHERE id = :id AND version = :version", nativeQuery = true)
-    @Modifying
-    int softDeleteByIdWithVersion(@Param("id") String id, @Param("version") Long version);
-
-    @Query(value = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP, version = version + 1 WHERE id = :id", nativeQuery = true)
+    @Query(
+            value = "UPDATE users " +
+                    "SET deleted_at = CURRENT_TIMESTAMP, " +
+                    "version = version + 1 " +
+                    "WHERE id = :id",
+            nativeQuery = true
+    )
     @Modifying
     void softDeleteById(@Param("id") String id);
 
-    @Query(value = "SELECT version FROM users WHERE id = :id AND deleted_at IS NULL LIMIT 1", nativeQuery = true)
+    @Query(
+            value = "SELECT version FROM users " +
+                    "WHERE id = :id " +
+                    "AND deleted_at IS NULL " +
+                    "LIMIT 1",
+            nativeQuery = true
+    )
     Optional<Long> findVersionById(@Param("id") String id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -49,5 +91,3 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByIdForUpdate(@Param("id") String id);
 
 }
-
-
