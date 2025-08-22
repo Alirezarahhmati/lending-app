@@ -13,7 +13,10 @@ public enum ResponseCode {
     VALIDATION_EXCEPTION(-2, "Validation exception"),
     ALREADY_EXISTS_EXCEPTION(-3, "%s already exists"),
     NOT_FOUND_EXCEPTION(-4, "%s not found"),
-    AUTHENTICATION_EXCEPTION(-3, "Authentication exception"),
+    AUTHENTICATION_EXCEPTION(-5, "Authentication exception"),
+    INSUFFICIENT_SCORE_EXCEPTION(-5, "The available score is not sufficient to complete this loan application. " +
+            "Please try again with a guarantor who has enough score or after improving your own score."),
+    INSUFFICIENT_EXCEPTION(-6, "Insufficient %s"),
 
     // Server errors
     INTERNAL_SERVER_ERROR(-100, "Internal server error");

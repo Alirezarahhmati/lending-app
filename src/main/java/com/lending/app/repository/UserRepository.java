@@ -1,11 +1,13 @@
 package com.lending.app.repository;
 
 import com.lending.app.model.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, String> {
 
@@ -28,11 +30,24 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     @Override
     @Query(value = "SELECT * FROM users WHERE deleted_at IS NULL", nativeQuery = true)
-    java.util.List<User> findAll();
+    List<User> findAll();
 
-    @Query(value = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id", nativeQuery = true)
-    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP, version = version + 1 WHERE id = :id AND version = :version", nativeQuery = true)
+    @Modifying
+    int softDeleteByIdWithVersion(@Param("id") String id, @Param("version") Long version);
+
+    @Query(value = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP, version = version + 1 WHERE id = :id", nativeQuery = true)
+    @Modifying
     void softDeleteById(@Param("id") String id);
+
+    @Query(value = "SELECT version FROM users WHERE id = :id AND deleted_at IS NULL LIMIT 1", nativeQuery = true)
+    Optional<Long> findVersionById(@Param("id") String id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value ="5000")})
+    @Query("SELECT u FROM User u WHERE u.id = :id AND u.deletedAt IS NULL")
+    Optional<User> findByIdForUpdate(@Param("id") String id);
+
 }
 
 

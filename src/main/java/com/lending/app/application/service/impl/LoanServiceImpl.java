@@ -8,6 +8,7 @@ import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 import com.lending.app.repository.LoanRepository;
 import com.lending.app.application.service.LoanService;
+import com.lending.app.util.LoanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,9 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public LoanMessage save(SaveLoanCommand command) {
-        Loan saved = loanRepository.save(loanMapper.toEntity(command));
+        Loan loan = loanMapper.toEntity(command);
+        loan.setEachInstallmentAmount(LoanUtils.calculateEachInstallmentAmount(command.amount(), command.numberOfInstallments()));
+        Loan saved = loanRepository.save(loan);
         return loanMapper.toMessage(saved);
     }
 

@@ -9,6 +9,7 @@ import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
 import com.lending.app.application.service.AuthService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,9 @@ import java.util.Map;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
+    @Value("${signup.bonus}")
+    private int bonus;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -46,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
         toSave.setUsername(command.username());
         toSave.setPassword(passwordEncoder.encode(command.password()));
         toSave.setEmail(command.email());
-        toSave.setScore(0);
+        toSave.setScore(bonus);
         userRepository.save(toSave);
 
         String token = jwtService.generateToken(toSave.getUsername(), Map.of("uid", String.valueOf(toSave.getId())));
@@ -62,7 +66,8 @@ public class AuthServiceImpl implements AuthService {
             if (!authentication.isAuthenticated()) {
                 throw new UnauthorizedException();
             }
-            String token = jwtService.generateToken(command.username(), Map.of());
+            User user = (User) authentication.getPrincipal();
+            String token = jwtService.generateToken(user.getUsername(), Map.of("uid", user.getId()));
             return new AuthMessage(token);
         } catch (AuthenticationException ex) {
             throw new UnauthorizedException();

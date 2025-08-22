@@ -23,6 +23,9 @@ public class Loan extends BaseEntity {
     private int numberOfInstallments;
 
     @Column(nullable = false)
+    private long eachInstallmentAmount;
+
+    @Column(nullable = false)
     private int requiredScore;
 
     @Column(nullable = false)

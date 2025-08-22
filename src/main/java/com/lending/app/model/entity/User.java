@@ -54,7 +54,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return deletedAt == null;
     }
 
 }

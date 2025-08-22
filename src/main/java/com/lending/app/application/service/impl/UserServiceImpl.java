@@ -37,11 +37,14 @@ public class UserServiceImpl implements UserService {
             throw new AlreadyExistsException("Email");
         }
 
-        User saved = userRepository.save(
-                userMapper.toEntity(command)
-        );
+        User saved = save(userMapper.toEntity(command));
 
         return userMapper.toMessage(saved);
+    }
+
+    @Override
+    public User save(User user) {
+        return userRepository.save(user);
     }
 
     @Override
@@ -80,6 +83,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserForUpdate(String id) {
+        return userRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new NotFoundException("User"));
+    }
+
+    @Override
     public UserMessage decreaseScore(String userId, Integer score) {
         User user = getUser(userId);
         user.setScore(user.getScore() - score);
@@ -101,6 +110,21 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.softDeleteById(id);
+    }
+
+    @Override
+    public void deleteWithVersion(String id, Long version) {
+        int updatedRows = userRepository.softDeleteByIdWithVersion(id, version);
+        if (updatedRows == 0) {
+//            throw new VersionMismatchException("User", id, version, null);
+            throw new NotFoundException("User");
+        }
+    }
+
+    @Override
+    public Long getCurrentVersion(String id) {
+        return userRepository.findVersionById(id)
+                .orElseThrow(() -> new NotFoundException("User"));
     }
 }
 

@@ -2,7 +2,6 @@ package com.lending.app.model.record.loan;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record LoanApplicationCommand (
-    @NotBlank String loanId,
-    String guarantorId
+public record LoanInstallmentCommand (
+        @NotBlank String loanTransactionId
 ){}

@@ -44,6 +44,7 @@ class UserServiceTest {
         entity.setUsername("ali");
         entity.setEmail("ali@example.com");
         entity.setScore(10);
+        entity.setVersion(1L);
 
         message = new UserMessage("01HUID", "ali", "ali@example.com", 10);
     }
@@ -116,7 +117,7 @@ class UserServiceTest {
         void shouldUpdateUserSuccessfully() {
             try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
                 mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01HUID");
-                UpdateUserCommand command = new UpdateUserCommand("ali", null, null, 15);
+                UpdateUserCommand command = new UpdateUserCommand(1L, "ali", null, null, 15);
                 when(userRepository.findById("01HUID")).thenReturn(Optional.of(entity));
                 doAnswer(inv -> null).when(userMapper).apply(any(UpdateUserCommand.class), any(User.class));
                 when(userRepository.save(any(User.class))).thenReturn(entity);
@@ -131,10 +132,21 @@ class UserServiceTest {
         void shouldThrowWhenUpdateUserNotFound() {
             try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
                 mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01MISSING");
-                UpdateUserCommand command = new UpdateUserCommand("ali", null, null, 15);
+                UpdateUserCommand command = new UpdateUserCommand(1L, "ali", null, null, 15);
                 when(userRepository.findById("01MISSING")).thenReturn(Optional.empty());
 
                 assertThatThrownBy(() -> userService.update(command)).isInstanceOf(NotFoundException.class);
+            }
+        }
+
+        @Test
+        void shouldThrowWhenVersionMismatch() {
+            try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
+                mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01HUID");
+                UpdateUserCommand command = new UpdateUserCommand(2L, "ali", null, null, 15);
+                when(userRepository.findById("01HUID")).thenReturn(Optional.of(entity));
+
+                assertThatThrownBy(() -> userService.update(command)).isInstanceOf(VersionMismatchException.class);
             }
         }
     }

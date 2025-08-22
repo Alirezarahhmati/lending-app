@@ -1,11 +1,13 @@
 package com.lending.app.exception.handler;
 
 import com.lending.app.exception.AlreadyExistsException;
+import com.lending.app.exception.NotFoundException;
 import com.lending.app.exception.UnauthorizedException;
 import com.lending.app.exception.base.BaseException;
 import com.lending.app.exception.base.ResponseCode;
 import com.lending.app.model.record.base.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,6 +31,12 @@ public class GlobalExceptionHandler {
         return build(ex, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler({NotFoundException.class})
+    public ResponseEntity<BaseResponse<?>> handleNotFound(NotFoundException ex) {
+        log.error("Not found error: {}", ex.getMessage());
+        return build(ex, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse<?>> handleUnexpected(Exception ex) {
         log.error("Unexpected error", ex);
@@ -48,7 +56,7 @@ public class GlobalExceptionHandler {
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .findFirst()
                 .orElse(ResponseCode.VALIDATION_EXCEPTION.getMessage());
-        log.warn("Validation error: {}", message);
+        log.error("Validation error: {}", message);
         return BaseResponse.error(HttpStatus.BAD_REQUEST, ResponseCode.VALIDATION_EXCEPTION.getCode(), message);
     }
 
@@ -58,7 +66,7 @@ public class GlobalExceptionHandler {
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .findFirst()
                 .orElse(ResponseCode.VALIDATION_EXCEPTION.getMessage());
-        log.warn("Constraint violation: {}", message);
+        log.error("Constraint violation: {}", message);
         return BaseResponse.error(HttpStatus.BAD_REQUEST, ResponseCode.VALIDATION_EXCEPTION.getCode(), message);
     }
 
@@ -67,7 +75,7 @@ public class GlobalExceptionHandler {
         return BaseResponse.error(
                 status,
                 responseCode.getCode(),
-                responseCode.getMessage()
+                ex.getMessage()
         );
     }
 }

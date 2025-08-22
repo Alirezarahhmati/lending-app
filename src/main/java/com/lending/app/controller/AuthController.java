@@ -1,10 +1,10 @@
 package com.lending.app.controller;
 
+import com.lending.app.application.service.AuthService;
 import com.lending.app.model.record.auth.AuthMessage;
 import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.model.record.base.BaseResponse;
-import com.lending.app.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;

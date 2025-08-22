@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import com.lending.app.util.SecurityUtils;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,12 +32,21 @@ public class UserController {
         return BaseResponse.success(user);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<BaseResponse<List<UserMessage>>> getAll() {
         log.debug("Received request to get all users");
         List<UserMessage> users = userService.getAll();
         log.debug("User received endpoint completed for all users: {}", users);
         return BaseResponse.success(users);
+    }
+
+    @GetMapping("/version")
+    public ResponseEntity<BaseResponse<Long>> getCurrentVersion() {
+        log.debug("Received request to get current user version");
+        String id = SecurityUtils.getCurrentUserId();
+        Long version = userService.getCurrentVersion(id);
+        log.debug("User version endpoint completed for ID: {} with version: {}", id, version);
+        return BaseResponse.success(version);
     }
 
     @PutMapping
