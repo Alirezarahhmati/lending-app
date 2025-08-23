@@ -30,10 +30,13 @@ import static org.mockito.Mockito.*;
 @DisplayName("LoanService Tests")
 class LoanServiceTest {
 
-    @Mock private LoanRepository loanRepository;
-    @Mock private LoanMapper loanMapper;
+    @Mock
+    private LoanRepository loanRepository;
+    @Mock
+    private LoanMapper loanMapper;
 
-    @InjectMocks private LoanServiceImpl loanService;
+    @InjectMocks
+    private LoanServiceImpl loanService;
 
     private Loan loan;
     private LoanMessage loanMessage;

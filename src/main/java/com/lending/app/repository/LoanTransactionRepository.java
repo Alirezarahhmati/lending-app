@@ -1,6 +1,5 @@
 package com.lending.app.repository;
 
-import com.lending.app.model.entity.Loan;
 import com.lending.app.model.entity.LoanTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
