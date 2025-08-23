@@ -10,7 +10,15 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Table
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_loan_name_deleted", columnNames = {"name", "deleted_at"})
+        },
+        indexes = {
+                @Index(name = "idx_loan_name_deleted", columnList = "name, deleted_at"),
+                @Index(name = "idx_loan_deleted_at", columnList = "deleted_at")
+        }
+)
 public class Loan extends BaseEntity {
 
     @Column(nullable = false)

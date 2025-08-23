@@ -12,14 +12,6 @@ import java.util.Optional;
 public interface InstallmentRepository extends JpaRepository<Installment, String> {
 
     @Query(
-            value = "SELECT COUNT(*) FROM installment i " +
-                    "WHERE i.loan_transaction_id = :loanTransactionId " +
-                    "AND i.paid = true",
-            nativeQuery = true
-    )
-    int countPaidByLoanTransactionId(@Param("loanTransactionId") String loanTransactionId);
-
-    @Query(
             value = "SELECT * FROM installment i " +
                     "WHERE i.loan_transaction_id = :loanTransactionId " +
                     "AND i.paid = false",

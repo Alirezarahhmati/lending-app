@@ -14,17 +14,28 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "users", indexes = {@Index(name = "idx_username", columnList = "username")})
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_username_deleted", columnNames = {"username", "deleted_at"}),
+                @UniqueConstraint(name = "uk_email_deleted", columnNames = {"email", "deleted_at"})
+        },
+        indexes = {
+                @Index(name = "idx_username_deleted", columnList = "username, deleted_at"),
+                @Index(name = "idx_email_deleted", columnList = "email, deleted_at"),
+                @Index(name = "idx_deleted_at", columnList = "deleted_at")
+        }
+)
 public class User extends BaseEntity implements UserDetails {
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String username;
 
     @Column(nullable = false)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)

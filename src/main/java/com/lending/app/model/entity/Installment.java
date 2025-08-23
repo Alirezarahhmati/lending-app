@@ -10,11 +10,15 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Table
+@Table(
+        indexes = {
+                @Index(name = "idx_installment_loan_txn_paid", columnList = "loan_transaction_id, paid")
+        }
+)
 public class Installment extends BaseEntity {
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "loan_transaction_id", nullable = false)
     private LoanTransaction loanTransaction;
 
     @Column(nullable = false)
