@@ -7,39 +7,39 @@ import com.lending.app.exception.InsufficientScoreException;
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.entity.User;
+import com.lending.app.model.record.loan.InstallmentRabbitMessage;
 import com.lending.app.model.record.loan.LoanApplicationCommand;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
 import com.lending.app.util.calculatorUtils;
 import com.lending.app.util.SecurityUtils;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
+
+import static com.lending.app.config.RabbitConfig.INSTALLMENT_QUEUE;
 
 @Service
 public class LoanApplicationProcessor {
 
     private final LoanTransactionService loanTransactionService;
-    private final InstallmentAsyncProcessor installmentAsyncProcessor;
     private final UserService userService;
     private final LoanService loanService;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final RabbitTemplate rabbitTemplate;
 
     public LoanApplicationProcessor(
             LoanTransactionService loanTransactionService,
-            InstallmentAsyncProcessor installmentAsyncProcessor,
             UserService userService,
-            LoanService loanService, ApplicationEventPublisher applicationEventPublisher
+            LoanService loanService,
+            RabbitTemplate rabbitTemplate
     ) {
         this.loanTransactionService = loanTransactionService;
-        this.installmentAsyncProcessor = installmentAsyncProcessor;
         this.userService = userService;
         this.loanService = loanService;
-        this.applicationEventPublisher = applicationEventPublisher;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -50,9 +50,18 @@ public class LoanApplicationProcessor {
 
         LoanTransaction transaction = initializeTransaction(loan, borrower);
 
-        return borrower.getScore() >= loan.getRequiredScore()
+        LoanApplicationMessage result = borrower.getScore() >= loan.getRequiredScore()
                 ? handleBorrower(borrower, loan, transaction)
                 : handleWithGuarantor(application, borrower, loan, transaction);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                rabbitTemplate.convertAndSend(INSTALLMENT_QUEUE, new InstallmentRabbitMessage(transaction.getId()));
+            }
+        });
+
+        return result;
     }
 
     private LoanTransaction initializeTransaction(Loan loan, User borrower) {
@@ -66,7 +75,6 @@ public class LoanApplicationProcessor {
     private LoanApplicationMessage handleBorrower(User borrower, Loan loan, LoanTransaction transaction) {
         loanTransactionService.saveAndFlush(transaction);
         userService.changeScore(borrower, -loan.getRequiredScore());
-        installmentAsyncProcessor.createNextInstallment(transaction);
         return successMessage();
     }
 
@@ -88,12 +96,11 @@ public class LoanApplicationProcessor {
 
         transaction.setGuarantor(guarantor);
         loanTransactionService.saveAndFlush(transaction);
-        installmentAsyncProcessor.createNextInstallment(transaction);
         return successMessage();
     }
 
     private LoanApplicationMessage successMessage() {
-        return new LoanApplicationMessage("Your loan application has been successfully submitted.");
+        return new LoanApplicationMessage("Your loan application is now pending. Processing will complete shortly.");
     }
 
 }

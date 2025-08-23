@@ -1,32 +1,44 @@
 package com.lending.app.application.processor;
 
 import com.lending.app.application.service.InstallmentService;
+import com.lending.app.application.service.LoanTransactionService;
 import com.lending.app.application.service.UserService;
 import com.lending.app.model.entity.Installment;
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.entity.User;
+import com.lending.app.model.record.loan.InstallmentRabbitMessage;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
 
+import static com.lending.app.config.RabbitConfig.INSTALLMENT_QUEUE;
+
 @Service
 public class InstallmentAsyncProcessor {
 
     private final InstallmentService installmentService;
+    private final LoanTransactionService loanTransactionService;
     private final UserService userService;
 
-    public InstallmentAsyncProcessor(InstallmentService installmentService, UserService userService) {
+
+    public InstallmentAsyncProcessor(InstallmentService installmentService,
+                                     LoanTransactionService loanTransactionService,
+                                     UserService userService) {
         this.installmentService = installmentService;
+        this.loanTransactionService = loanTransactionService;
         this.userService = userService;
     }
 
-    @Async("taskExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void createNextInstallment(LoanTransaction transaction) {
+    @RabbitListener(queues = INSTALLMENT_QUEUE)
+    @Transactional
+    public void handleInstallmentCreation(InstallmentRabbitMessage message) {
+        LoanTransaction transaction = loanTransactionService.findById(message.transactionId());
         Installment installment = new Installment();
         installment.setLoanTransaction(transaction);
         installment.setDueDate(LocalDateTime.now().plusMonths(1));

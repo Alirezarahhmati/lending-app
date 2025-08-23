@@ -5,15 +5,21 @@ import com.lending.app.application.service.LoanTransactionService;
 import com.lending.app.exception.NotFoundException;
 import com.lending.app.model.entity.Installment;
 import com.lending.app.model.entity.LoanTransaction;
+import com.lending.app.model.record.loan.InstallmentRabbitMessage;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
 import com.lending.app.model.record.loan.LoanInstallmentCommand;
 import com.lending.app.util.calculatorUtils;
 import com.lending.app.util.SecurityUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+
+import static com.lending.app.config.RabbitConfig.INSTALLMENT_QUEUE;
 
 @Service
 public class InstallmentPaymentProcessor {
@@ -21,11 +27,13 @@ public class InstallmentPaymentProcessor {
     private final LoanTransactionService loanTransactionService;
     private final InstallmentService installmentService;
     private final InstallmentAsyncProcessor installmentAsyncProcessor;
+    private final RabbitTemplate rabbitTemplate;
 
-    public InstallmentPaymentProcessor(LoanTransactionService loanTransactionService, InstallmentService installmentService, InstallmentAsyncProcessor installmentAsyncProcessor) {
+    public InstallmentPaymentProcessor(LoanTransactionService loanTransactionService, InstallmentService installmentService, InstallmentAsyncProcessor installmentAsyncProcessor, RabbitTemplate rabbitTemplate) {
         this.loanTransactionService = loanTransactionService;
         this.installmentService = installmentService;
         this.installmentAsyncProcessor = installmentAsyncProcessor;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -46,10 +54,16 @@ public class InstallmentPaymentProcessor {
         boolean isEnd = paidAmount >= calculatorUtils.calculateMustPaidAmount(loanTransaction.getLoan().getAmount(), loanTransaction.getLoan().getNumberOfInstallments());
         if (isEnd)
             loanTransaction.setEndDate(LocalDateTime.now());
-        LoanTransaction savedLoanTransaction = loanTransactionService.saveAndFlush(loanTransaction);
+        loanTransactionService.saveAndFlush(loanTransaction);
 
         if (!isEnd)
-            installmentAsyncProcessor.createNextInstallment(savedLoanTransaction);
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    rabbitTemplate.convertAndSend(INSTALLMENT_QUEUE, new InstallmentRabbitMessage(loanTransaction.getId()));
+                }
+            });
+
         installmentAsyncProcessor.processInstallmentBonus(savedInstallment);
         return new LoanApplicationMessage("Installment paid successfully.");
     }
