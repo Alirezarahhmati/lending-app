@@ -36,7 +36,6 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public LoanMessage update(UpdateLoanCommand command) {
-        // todo: if any user has this loan what should happening in case of update?
         Loan existing = loanRepository.findById(command.id())
                 .orElseThrow(() -> new NotFoundException("Loan"));
         loanMapper.apply(command, existing);
