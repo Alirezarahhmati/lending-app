@@ -9,6 +9,7 @@ import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
 import com.lending.app.application.service.AuthService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -39,10 +41,14 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthMessage signUp(SignUpCommand command) {
+        log.info("SignUp attempt for username: {}, email: {}", command.username(), command.email());
+
         if (userRepository.existsByUsername(command.username())) {
+            log.warn("SignUp failed: username {} already exists", command.username());
             throw new AlreadyExistsException(command.username());
         }
         if (userRepository.existsByEmail(command.email())) {
+            log.warn("SignUp failed: email {} already exists", command.email());
             throw new AlreadyExistsException("Email");
         }
 
@@ -54,22 +60,28 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(toSave);
 
         String token = jwtService.generateToken(toSave.getUsername(), Map.of("uid", String.valueOf(toSave.getId())));
+        log.info("SignUp successful for username: {}", toSave.getUsername());
         return new AuthMessage(token);
     }
 
     @Override
     public AuthMessage signIn(SignInCommand command) {
+        log.info("SignIn attempt for username: {}", command.username());
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(command.username(), command.password())
             );
             if (!authentication.isAuthenticated()) {
+                log.warn("SignIn failed: authentication failed for username {}", command.username());
                 throw new UnauthorizedException();
             }
             User user = (User) authentication.getPrincipal();
             String token = jwtService.generateToken(user.getUsername(), Map.of("uid", user.getId()));
+            log.info("SignIn successful for username: {}", user.getUsername());
             return new AuthMessage(token);
         } catch (AuthenticationException ex) {
+            log.warn("SignIn failed: authentication exception for username {}", command.username());
             throw new UnauthorizedException();
         }
     }

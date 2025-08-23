@@ -8,19 +8,20 @@ import com.lending.app.model.entity.Loan;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.entity.User;
 import com.lending.app.model.record.loan.LoanTransactionMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 public class InstallmentAsyncProcessor {
 
     private final InstallmentService installmentService;
     private final LoanTransactionService loanTransactionService;
     private final UserService userService;
-
 
     public InstallmentAsyncProcessor(
             InstallmentService installmentService,
@@ -35,17 +36,22 @@ public class InstallmentAsyncProcessor {
     @Transactional
     @Async("taskExecutor")
     public void handleInstallmentCreation(LoanTransactionMessage message) {
+        log.debug("Creating installment for loanTransactionId: {}", message.transactionId());
         LoanTransaction transaction = loanTransactionService.findById(message.transactionId());
+
         Installment installment = new Installment();
         installment.setLoanTransaction(transaction);
         installment.setDueDate(LocalDateTime.now().plusMonths(1));
+
         installmentService.save(installment);
+        log.info("Installment created with dueDate {} for loanTransactionId: {}", installment.getDueDate(), transaction.getId());
     }
 
     @Transactional
     @Async("taskExecutor")
     public void processInstallmentBonus(Installment installment) {
         int finalBonus = calculateBonus(installment);
+        log.debug("Calculated bonus {} for installmentId: {}", finalBonus, installment.getId());
 
         LoanTransaction loanTransaction = installment.getLoanTransaction();
         User borrower = loanTransaction.getBorrower();
@@ -57,8 +63,12 @@ public class InstallmentAsyncProcessor {
 
             userService.changeScore(borrower, borrowerBonus);
             userService.changeScore(guarantor, guarantorBonus);
+
+            log.info("Bonus distributed - borrowerId: {} gets {}, guarantorId: {} gets {}",
+                    borrower.getId(), borrowerBonus, guarantor.getId(), guarantorBonus);
         } else {
             userService.changeScore(borrower, finalBonus);
+            log.info("Bonus {} applied to borrowerId: {}", finalBonus, borrower.getId());
         }
     }
 
@@ -82,8 +92,8 @@ public class InstallmentAsyncProcessor {
             factor = 0;
         }
 
-        return (int) Math.round(baseBonus * factor);
+        int calculatedBonus = (int) Math.round(baseBonus * factor);
+        log.debug("Calculated factor {} and final bonus {} for installmentId: {}", factor, calculatedBonus, installment.getId());
+        return calculatedBonus;
     }
-
 }
-

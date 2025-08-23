@@ -9,13 +9,14 @@ import com.lending.app.model.record.loan.UpdateLoanCommand;
 import com.lending.app.repository.LoanRepository;
 import com.lending.app.application.service.LoanService;
 import com.lending.app.util.calculatorUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
-@Transactional
 public class LoanServiceImpl implements LoanService {
 
     private final LoanRepository loanRepository;
@@ -28,45 +29,62 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public LoanMessage save(SaveLoanCommand command) {
+        log.debug("Saving new loan: {}", command);
         Loan loan = loanMapper.toEntity(command);
         loan.setEachInstallmentAmount(calculatorUtils.calculateEachInstallmentAmount(command.amount(), command.numberOfInstallments()));
         Loan saved = loanRepository.save(loan);
+        log.info("Loan saved with id: {}", saved.getId());
         return loanMapper.toMessage(saved);
     }
 
     @Override
     public LoanMessage update(UpdateLoanCommand command) {
+        log.debug("Updating loan with id: {}", command.id());
         Loan existing = loanRepository.findById(command.id())
-                .orElseThrow(() -> new NotFoundException("Loan"));
+                .orElseThrow(() -> {
+                    log.warn("Loan not found with id: {}", command.id());
+                    return new NotFoundException("Loan");
+                });
         loanMapper.apply(command, existing);
         Loan saved = loanRepository.save(existing);
+        log.info("Loan updated with id: {}", saved.getId());
         return loanMapper.toMessage(saved);
     }
 
     @Override
     public void delete(String id) {
+        log.debug("Deleting loan with id: {}", id);
         if (!loanRepository.existsById(id)) {
+            log.warn("Loan not found for deletion with id: {}", id);
             throw new NotFoundException("Loan");
         }
         loanRepository.softDeleteById(id);
+        log.info("Loan soft-deleted with id: {}", id);
     }
 
     @Override
     public LoanMessage get(String id) {
+        log.debug("Getting loan with id: {}", id);
         return loanMapper.toMessage(getLoan(id));
     }
 
     @Override
     public Loan getLoan(String id) {
+        log.debug("Fetching loan entity with id: {}", id);
         return loanRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Loan"));
+                .orElseThrow(() -> {
+                    log.warn("Loan not found with id: {}", id);
+                    return new NotFoundException("Loan");
+                });
     }
 
     @Override
     public List<LoanMessage> getAll() {
-        return loanRepository.findAll().stream().map(loanMapper::toMessage).toList();
+        log.debug("Fetching all loans");
+        List<LoanMessage> loans = loanRepository.findAll().stream()
+                .map(loanMapper::toMessage)
+                .toList();
+        log.info("Fetched {} loans", loans.size());
+        return loans;
     }
 }
-
-
-
