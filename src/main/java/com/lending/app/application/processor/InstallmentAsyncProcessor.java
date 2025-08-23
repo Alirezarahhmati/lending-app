@@ -7,17 +7,12 @@ import com.lending.app.model.entity.Installment;
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.entity.User;
-import com.lending.app.model.record.loan.InstallmentRabbitMessage;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import com.lending.app.model.record.loan.LoanTransactionMessage;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
-
-import static com.lending.app.config.RabbitConfig.INSTALLMENT_QUEUE;
 
 @Service
 public class InstallmentAsyncProcessor {
@@ -27,17 +22,19 @@ public class InstallmentAsyncProcessor {
     private final UserService userService;
 
 
-    public InstallmentAsyncProcessor(InstallmentService installmentService,
-                                     LoanTransactionService loanTransactionService,
-                                     UserService userService) {
+    public InstallmentAsyncProcessor(
+            InstallmentService installmentService,
+            LoanTransactionService loanTransactionService,
+            UserService userService
+    ) {
         this.installmentService = installmentService;
         this.loanTransactionService = loanTransactionService;
         this.userService = userService;
     }
 
-    @RabbitListener(queues = INSTALLMENT_QUEUE)
     @Transactional
-    public void handleInstallmentCreation(InstallmentRabbitMessage message) {
+    @Async("taskExecutor")
+    public void handleInstallmentCreation(LoanTransactionMessage message) {
         LoanTransaction transaction = loanTransactionService.findById(message.transactionId());
         Installment installment = new Installment();
         installment.setLoanTransaction(transaction);
@@ -45,8 +42,8 @@ public class InstallmentAsyncProcessor {
         installmentService.save(installment);
     }
 
+    @Transactional
     @Async("taskExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void processInstallmentBonus(Installment installment) {
         int finalBonus = calculateBonus(installment);
 

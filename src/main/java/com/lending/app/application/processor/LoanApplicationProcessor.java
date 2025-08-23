@@ -7,9 +7,9 @@ import com.lending.app.exception.InsufficientScoreException;
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.entity.User;
-import com.lending.app.model.record.loan.InstallmentRabbitMessage;
 import com.lending.app.model.record.loan.LoanApplicationCommand;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
+import com.lending.app.model.record.loan.LoanTransactionMessage;
 import com.lending.app.util.calculatorUtils;
 import com.lending.app.util.SecurityUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -20,26 +20,23 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.time.LocalDateTime;
 
-import static com.lending.app.config.RabbitConfig.INSTALLMENT_QUEUE;
-
 @Service
 public class LoanApplicationProcessor {
 
     private final LoanTransactionService loanTransactionService;
     private final UserService userService;
     private final LoanService loanService;
-    private final RabbitTemplate rabbitTemplate;
+    private final InstallmentAsyncProcessor installmentAsyncProcessor;
 
     public LoanApplicationProcessor(
             LoanTransactionService loanTransactionService,
             UserService userService,
-            LoanService loanService,
-            RabbitTemplate rabbitTemplate
+            LoanService loanService, InstallmentAsyncProcessor installmentAsyncProcessor
     ) {
         this.loanTransactionService = loanTransactionService;
         this.userService = userService;
         this.loanService = loanService;
-        this.rabbitTemplate = rabbitTemplate;
+        this.installmentAsyncProcessor = installmentAsyncProcessor;
     }
 
     @Transactional
@@ -57,7 +54,7 @@ public class LoanApplicationProcessor {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                rabbitTemplate.convertAndSend(INSTALLMENT_QUEUE, new InstallmentRabbitMessage(transaction.getId()));
+                installmentAsyncProcessor.handleInstallmentCreation(new LoanTransactionMessage(transaction.getId()));
             }
         });
 
@@ -100,7 +97,7 @@ public class LoanApplicationProcessor {
     }
 
     private LoanApplicationMessage successMessage() {
-        return new LoanApplicationMessage("Your loan application is now pending. Processing will complete shortly.");
+        return new LoanApplicationMessage("Your loan application has been successfully submitted.");
     }
 
 }

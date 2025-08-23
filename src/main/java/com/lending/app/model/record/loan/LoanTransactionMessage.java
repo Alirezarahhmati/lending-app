@@ -1,6 +1,6 @@
 package com.lending.app.model.record.loan;
 
-public record InstallmentRabbitMessage(
+public record LoanTransactionMessage(
         String transactionId
 ) {
 }

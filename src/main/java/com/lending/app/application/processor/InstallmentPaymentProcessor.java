@@ -5,7 +5,7 @@ import com.lending.app.application.service.LoanTransactionService;
 import com.lending.app.exception.NotFoundException;
 import com.lending.app.model.entity.Installment;
 import com.lending.app.model.entity.LoanTransaction;
-import com.lending.app.model.record.loan.InstallmentRabbitMessage;
+import com.lending.app.model.record.loan.LoanTransactionMessage;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
 import com.lending.app.model.record.loan.LoanInstallmentCommand;
 import com.lending.app.util.calculatorUtils;
@@ -27,13 +27,14 @@ public class InstallmentPaymentProcessor {
     private final LoanTransactionService loanTransactionService;
     private final InstallmentService installmentService;
     private final InstallmentAsyncProcessor installmentAsyncProcessor;
-    private final RabbitTemplate rabbitTemplate;
 
-    public InstallmentPaymentProcessor(LoanTransactionService loanTransactionService, InstallmentService installmentService, InstallmentAsyncProcessor installmentAsyncProcessor, RabbitTemplate rabbitTemplate) {
+    public InstallmentPaymentProcessor(
+            LoanTransactionService loanTransactionService, InstallmentService installmentService,
+            InstallmentAsyncProcessor installmentAsyncProcessor
+    ) {
         this.loanTransactionService = loanTransactionService;
         this.installmentService = installmentService;
         this.installmentAsyncProcessor = installmentAsyncProcessor;
-        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -60,7 +61,7 @@ public class InstallmentPaymentProcessor {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    rabbitTemplate.convertAndSend(INSTALLMENT_QUEUE, new InstallmentRabbitMessage(loanTransaction.getId()));
+                    installmentAsyncProcessor.handleInstallmentCreation(new LoanTransactionMessage(loanTransaction.getId()));
                 }
             });
 
