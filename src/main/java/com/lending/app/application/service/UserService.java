@@ -17,7 +17,6 @@ public interface UserService {
     User getUserForUpdate(String id);
     void delete();
     void changeScore(User user, int delta);
-    Long getCurrentVersion(String id);
 }
 
 

@@ -36,13 +36,6 @@ public class UserController {
         return BaseResponse.success(users);
     }
 
-    @GetMapping("/version")
-    public ResponseEntity<BaseResponse<Long>> getCurrentVersion() {
-        String id = SecurityUtils.getCurrentUserId();
-        Long version = userService.getCurrentVersion(id);
-        return BaseResponse.success(version);
-    }
-
     @PutMapping
     public ResponseEntity<BaseResponse<UserMessage>> update(@Valid @RequestBody UpdateUserCommand command) {
         UserMessage updated = userService.update(command);

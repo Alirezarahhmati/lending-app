@@ -104,11 +104,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    @Override
-    public Long getCurrentVersion(String id) {
-        return userRepository.findVersionById(id)
-                .orElseThrow(() -> new NotFoundException("User"));
-    }
 }
 
 

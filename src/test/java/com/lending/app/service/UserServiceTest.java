@@ -35,38 +35,46 @@ class UserServiceTest {
     @Mock private UserMapper userMapper;
     @InjectMocks private UserServiceImpl userService;
 
-    private User entity;
-    private UserMessage message;
+    private User user;
+    private UserMessage userMessage;
 
     @BeforeEach
     void setUp() {
-        entity = new User();
-        entity.setUsername("ali");
-        entity.setEmail("ali@example.com");
-        entity.setScore(10);
-        entity.setVersion(1L);
+        user = new User();
+        user.setUsername("ali");
+        user.setEmail("ali@example.com");
+        user.setScore(10);
 
-        message = new UserMessage("01HUID", "ali", "ali@example.com", 10);
+        userMessage = new UserMessage("01HUID", "ali", "ali@example.com", 10);
+    }
+
+    private void withCurrentUser(String userId, Runnable action) {
+        try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
+            mocked.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+            action.run();
+        }
     }
 
     @Nested
     @DisplayName("Create")
     class CreateTests {
         @Test
+        @DisplayName("should create user successfully")
         void shouldCreateUserSuccessfully() {
             CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10);
             when(userRepository.existsByUsername("ali")).thenReturn(false);
             when(userRepository.existsByEmail("ali@example.com")).thenReturn(false);
-            when(userMapper.toEntity(any(CreateUserCommand.class))).thenReturn(entity);
-            when(userRepository.save(any(User.class))).thenReturn(entity);
-            when(userMapper.toMessage(entity)).thenReturn(message);
+            when(userMapper.toEntity(any(CreateUserCommand.class))).thenReturn(user);
+            when(userRepository.save(any(User.class))).thenReturn(user);
+            when(userMapper.toMessage(user)).thenReturn(userMessage);
 
             UserMessage res = userService.save(command);
 
-            assertThat(res).isEqualTo(message);
+            assertThat(res).isEqualTo(userMessage);
         }
 
         @Test
+        @DisplayName("should throw AlreadyExistsException when username exists")
         void shouldThrowWhenUsernameExists() {
             CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10);
             when(userRepository.existsByUsername("ali")).thenReturn(true);
@@ -75,6 +83,7 @@ class UserServiceTest {
         }
 
         @Test
+        @DisplayName("should throw AlreadyExistsException when email exists")
         void shouldThrowWhenEmailExists() {
             CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10);
             when(userRepository.existsByUsername("ali")).thenReturn(false);
@@ -88,25 +97,25 @@ class UserServiceTest {
     @DisplayName("Get")
     class GetTests {
         @Test
+        @DisplayName("should get current user successfully")
         void shouldGetCurrentUser() {
-            try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01HUID");
-                when(userRepository.findById("01HUID")).thenReturn(Optional.of(entity));
-                when(userMapper.toMessage(entity)).thenReturn(message);
+            withCurrentUser("01HUID", () -> {
+                when(userRepository.findById("01HUID")).thenReturn(Optional.of(user));
+                when(userMapper.toMessage(user)).thenReturn(userMessage);
 
                 UserMessage res = userService.get();
-                assertThat(res).isEqualTo(message);
-            }
+                assertThat(res).isEqualTo(userMessage);
+            });
         }
 
         @Test
+        @DisplayName("should throw NotFoundException when current user not found")
         void shouldThrowWhenCurrentUserNotFound() {
-            try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01MISSING");
+            withCurrentUser("01MISSING", () -> {
                 when(userRepository.findById("01MISSING")).thenReturn(Optional.empty());
 
                 assertThatThrownBy(() -> userService.get()).isInstanceOf(NotFoundException.class);
-            }
+            });
         }
     }
 
@@ -114,40 +123,55 @@ class UserServiceTest {
     @DisplayName("Update")
     class UpdateTests {
         @Test
+        @DisplayName("should update user successfully")
         void shouldUpdateUserSuccessfully() {
-            try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01HUID");
-                UpdateUserCommand command = new UpdateUserCommand(1L, "ali", null, null, 15);
-                when(userRepository.findById("01HUID")).thenReturn(Optional.of(entity));
+            withCurrentUser("01HUID", () -> {
+                UpdateUserCommand command = new UpdateUserCommand("alireza", "adminadmin", null, 15);
+                when(userRepository.findById("01HUID")).thenReturn(Optional.of(user));
                 doAnswer(inv -> null).when(userMapper).apply(any(UpdateUserCommand.class), any(User.class));
-                when(userRepository.save(any(User.class))).thenReturn(entity);
-                when(userMapper.toMessage(entity)).thenReturn(new UserMessage("01HUID", "ali", "ali@example.com", 15));
+                when(userRepository.save(any(User.class))).thenReturn(user);
+                when(userMapper.toMessage(user)).thenReturn(new UserMessage("01HUID", "ali", "ali@example.com", 15));
 
                 UserMessage res = userService.update(command);
                 assertThat(res.score()).isEqualTo(15);
-            }
+            });
         }
 
         @Test
+        @DisplayName("should throw NotFoundException when user to update not found")
         void shouldThrowWhenUpdateUserNotFound() {
-            try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01MISSING");
-                UpdateUserCommand command = new UpdateUserCommand(1L, "ali", null, null, 15);
+            withCurrentUser("01MISSING", () -> {
+                UpdateUserCommand command = new UpdateUserCommand("alireza", "adminadmin", null, 15);
                 when(userRepository.findById("01MISSING")).thenReturn(Optional.empty());
 
                 assertThatThrownBy(() -> userService.update(command)).isInstanceOf(NotFoundException.class);
-            }
+            });
         }
 
         @Test
-        void shouldThrowWhenVersionMismatch() {
-            try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01HUID");
-                UpdateUserCommand command = new UpdateUserCommand(2L, "ali", null, null, 15);
-                when(userRepository.findById("01HUID")).thenReturn(Optional.of(entity));
+        @DisplayName("should throw AlreadyExistsException when updating username to existing one")
+        void shouldThrowWhenUpdateUsernameExists() {
+            withCurrentUser("01HUID", () -> {
+                UpdateUserCommand command = new UpdateUserCommand("existingUsername", null, null, 15);
+                when(userRepository.findById("01HUID")).thenReturn(Optional.of(user));
+                when(userRepository.existsByUsername("existingUsername")).thenReturn(true);
 
-                assertThatThrownBy(() -> userService.update(command)).isInstanceOf(VersionMismatchException.class);
-            }
+                assertThatThrownBy(() -> userService.update(command))
+                        .isInstanceOf(AlreadyExistsException.class);
+            });
+        }
+
+        @Test
+        @DisplayName("should throw AlreadyExistsException when updating email to existing one")
+        void shouldThrowWhenUpdateEmailExists() {
+            withCurrentUser("01HUID", () -> {
+                UpdateUserCommand command = new UpdateUserCommand(null, null, "existing@example.com", 15);
+                when(userRepository.findById("01HUID")).thenReturn(Optional.of(user));
+                when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
+
+                assertThatThrownBy(() -> userService.update(command))
+                        .isInstanceOf(AlreadyExistsException.class);
+            });
         }
     }
 
@@ -155,27 +179,41 @@ class UserServiceTest {
     @DisplayName("Delete")
     class DeleteTests {
         @Test
+        @DisplayName("should delete user successfully")
         void shouldDeleteUserSuccessfully() {
-            try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01HUID");
+            withCurrentUser("01HUID", () -> {
                 when(userRepository.existsById("01HUID")).thenReturn(true);
 
                 userService.delete();
 
                 verify(userRepository).softDeleteById("01HUID");
-            }
+            });
         }
 
         @Test
+        @DisplayName("should throw NotFoundException when user to delete not found")
         void shouldThrowWhenDeleteUserNotFound() {
-            try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn("01MISSING");
+            withCurrentUser("01MISSING", () -> {
                 when(userRepository.existsById("01MISSING")).thenReturn(false);
 
                 assertThatThrownBy(() -> userService.delete()).isInstanceOf(NotFoundException.class);
-            }
+            });
+        }
+    }
+
+    @Nested
+    @DisplayName("Change Score")
+    class ChangeScoreTests {
+        @Test
+        @DisplayName("should change user score correctly")
+        void shouldChangeScore() {
+            user.setScore(10);
+            when(userRepository.save(user)).thenReturn(user);
+
+            userService.changeScore(user, 5);
+
+            assertThat(user.getScore()).isEqualTo(15);
+            verify(userRepository).save(user);
         }
     }
 }
-
-

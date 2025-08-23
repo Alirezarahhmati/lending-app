@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -55,11 +56,20 @@ class AuthServiceTest {
         savedUser.setScore(0);
     }
 
+    private void withAuthenticatedUser(User user, Runnable action) {
+        Authentication auth = mock(Authentication.class);
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getPrincipal()).thenReturn(user);
+        when(authenticationManager.authenticate(any())).thenReturn(auth);
+        action.run();
+    }
+
     @Nested
     @DisplayName("SignUp")
     class SignUp {
+
         @Test
-        @DisplayName("should sign up successfully and return token")
+        @DisplayName("should sign up successfully and return token with correct claims")
         void shouldSignUpSuccessfully() {
             when(userRepository.existsByUsername("alireza")).thenReturn(false);
             when(userRepository.existsByEmail("alireza@example.com")).thenReturn(false);
@@ -71,7 +81,13 @@ class AuthServiceTest {
 
             assertThat(res).isNotNull();
             assertThat(res.token()).isEqualTo("jwt-token");
-            verify(userRepository).save(any(User.class));
+
+            verify(userRepository).save(argThat(user ->
+                    user.getUsername().equals("alireza") &&
+                            user.getEmail().equals("alireza@example.com") &&
+                            user.getPassword().equals("encoded") &&
+                            user.getScore() == 0
+            ));
         }
 
         @Test
@@ -101,28 +117,50 @@ class AuthServiceTest {
     @Nested
     @DisplayName("SignIn")
     class SignIn {
+
         @Test
-        @DisplayName("should sign in successfully and return token")
+        @DisplayName("should sign in successfully and return token with correct claims")
         void shouldSignInSuccessfully() {
-            Authentication authentication = mock(Authentication.class);
-            when(authentication.isAuthenticated()).thenReturn(true);
-            when(authenticationManager.authenticate(any())).thenReturn(authentication);
-            when(jwtService.generateToken(eq("alireza"), any(Map.class))).thenReturn("jwt-token");
+            withAuthenticatedUser(savedUser, () -> {
+                when(jwtService.generateToken(eq("alireza"), any(Map.class))).thenReturn("jwt-token");
 
-            AuthMessage res = authService.signIn(signInCommand);
+                AuthMessage res = authService.signIn(signInCommand);
 
-            assertThat(res.token()).isEqualTo("jwt-token");
+                assertThat(res.token()).isEqualTo("jwt-token");
+            });
         }
 
         @Test
         @DisplayName("should throw UnauthorizedException when authentication fails")
         void shouldThrowUnauthorizedOnInvalidCredentials() {
-            when(authenticationManager.authenticate(any())).thenThrow(new org.springframework.security.authentication.BadCredentialsException("bad"));
+            when(authenticationManager.authenticate(any()))
+                    .thenThrow(new BadCredentialsException("bad"));
 
             assertThatThrownBy(() -> authService.signIn(signInCommand))
                     .isInstanceOf(UnauthorizedException.class);
         }
+
+        @Test
+        @DisplayName("should throw UnauthorizedException when authentication returns unauthenticated")
+        void shouldThrowWhenUnauthenticated() {
+            Authentication authentication = mock(Authentication.class);
+            when(authentication.isAuthenticated()).thenReturn(false);
+            when(authenticationManager.authenticate(any())).thenReturn(authentication);
+
+            assertThatThrownBy(() -> authService.signIn(signInCommand))
+                    .isInstanceOf(UnauthorizedException.class);
+        }
+
+        @Test
+        @DisplayName("should throw exception if principal is not User")
+        void shouldThrowIfPrincipalWrongType() {
+            Authentication authentication = mock(Authentication.class);
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(authentication.getPrincipal()).thenReturn("notUser");
+            when(authenticationManager.authenticate(any())).thenReturn(authentication);
+
+            assertThatThrownBy(() -> authService.signIn(signInCommand))
+                    .isInstanceOf(ClassCastException.class);
+        }
     }
 }
-
-
