@@ -8,6 +8,9 @@ import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.model.record.user.UserMessageSet;
+import com.lending.app.repository.InstallmentRepository;
+import com.lending.app.repository.LoanRepository;
+import com.lending.app.repository.LoanTransactionRepository;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.util.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +50,15 @@ class UserControllerIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private LoanTransactionRepository loanTransactionRepository;
+
+    @Autowired
+    private LoanRepository loanRepository;
+
+    @Autowired
+    private InstallmentRepository installmentRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private String testUserId;
@@ -54,6 +66,9 @@ class UserControllerIntegrationTest {
 
     @BeforeEach
     void setupUser() {
+        installmentRepository.deleteAll();
+        loanTransactionRepository.deleteAll();
+        loanRepository.deleteAll();
         userRepository.deleteAll();
 
         User user = new User();
