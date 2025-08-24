@@ -204,10 +204,13 @@ class UserServiceTest {
     @Nested
     @DisplayName("Change Score")
     class ChangeScoreTests {
+
         @Test
         @DisplayName("should change user score correctly")
         void shouldChangeScore() {
             user.setScore(10);
+
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
             when(userRepository.save(user)).thenReturn(user);
 
             userService.changeScore(user, 5);
