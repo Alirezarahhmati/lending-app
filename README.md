@@ -12,6 +12,7 @@ A lending application is a software solution designed to facilitate the process 
 *   **User Management**: Create, retrieve, update, and soft-delete user accounts, with validation to ensure unique active usernames and emails. Manage user scores.
 *   **Loan Application**: Users can apply for loans. The system checks the borrower's credit score, and if insufficient, allows for a guarantor to be involved.
 *   **Installment Payments**: Process loan installment payments, update loan transaction status, and trigger asynchronous creation of subsequent installments.
+*   **Loan Transaction Details**: Provides detailed loan transaction information, including loan details, paid amount, start date, and end date for user-specific transactions.
 *   **Asynchronous Processing**: Utilizes Spring's `@Async` for tasks like installment creation to ensure non-blocking operations.
 *   **Data Persistence**: Uses Spring Data JPA with PostgreSQL as the primary database.
 *   **Caching**: Integrates Spring Cache for improving performance of user data retrieval.
@@ -131,6 +132,9 @@ Access the OpenAPI (Swagger UI) documentation at `http://localhost:8080/swagger-
 ### Loan Operations
 *   `POST /api/operation/loan`: Process a loan application.
 *   `POST /api/operation/installment`: Process an installment payment.
+
+### Loan Transactions
+*   `GET /api/loan-transactions/my-loans`: Get a list of the current user's loan transactions with detailed information (loan, paid amount, start date, end date).
 
 ## Testing
 
