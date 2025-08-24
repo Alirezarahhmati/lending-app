@@ -5,7 +5,10 @@ import com.lending.app.exception.NotFoundException;
 import com.lending.app.model.entity.Installment;
 import com.lending.app.repository.InstallmentRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -17,7 +20,9 @@ public class InstallmentServiceImpl implements InstallmentService {
         this.installmentRepository = installmentRepository;
     }
 
+    @Transactional
     @Override
+    @CachePut(value = "installments", key = "#result.id")
     public Installment save(Installment installment) {
         log.debug("Saving installment for loanTransactionId: {}", installment.getLoanTransaction().getId());
         Installment saved = installmentRepository.save(installment);
@@ -25,7 +30,9 @@ public class InstallmentServiceImpl implements InstallmentService {
         return saved;
     }
 
+    @Transactional
     @Override
+    @CachePut(value = "installments", key = "#result.id")
     public Installment saveAndFlush(Installment installment) {
         log.debug("Saving and flushing installment for loanTransactionId: {}", installment.getLoanTransaction().getId());
         Installment saved = installmentRepository.saveAndFlush(installment);
@@ -33,6 +40,8 @@ public class InstallmentServiceImpl implements InstallmentService {
         return saved;
     }
 
+    @Override
+    @Cacheable(value = "installments_not_paid", key = "#loanTransactionId")
     public Installment findNotPaidInstallmentByLoanTransactionId(String loanTransactionId) {
         log.debug("Finding not-paid installment for loanTransactionId: {}", loanTransactionId);
         Installment installment = installmentRepository.findLastByLoanTransactionId(loanTransactionId)
