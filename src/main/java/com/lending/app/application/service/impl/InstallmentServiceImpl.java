@@ -22,7 +22,6 @@ public class InstallmentServiceImpl implements InstallmentService {
 
     @Transactional
     @Override
-    @CachePut(value = "installments", key = "#result.id")
     public Installment save(Installment installment) {
         log.debug("Saving installment for loanTransactionId: {}", installment.getLoanTransaction().getId());
         Installment saved = installmentRepository.save(installment);
@@ -32,7 +31,6 @@ public class InstallmentServiceImpl implements InstallmentService {
 
     @Transactional
     @Override
-    @CachePut(value = "installments", key = "#result.id")
     public Installment saveAndFlush(Installment installment) {
         log.debug("Saving and flushing installment for loanTransactionId: {}", installment.getLoanTransaction().getId());
         Installment saved = installmentRepository.saveAndFlush(installment);
@@ -41,7 +39,6 @@ public class InstallmentServiceImpl implements InstallmentService {
     }
 
     @Override
-    @Cacheable(value = "installments_not_paid", key = "#loanTransactionId")
     public Installment findNotPaidInstallmentByLoanTransactionId(String loanTransactionId) {
         log.debug("Finding not-paid installment for loanTransactionId: {}", loanTransactionId);
         Installment installment = installmentRepository.findLastByLoanTransactionId(loanTransactionId)

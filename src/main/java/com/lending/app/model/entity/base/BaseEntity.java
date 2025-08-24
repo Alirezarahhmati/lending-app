@@ -15,19 +15,19 @@ public abstract class BaseEntity {
     private String id;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private String updatedAt;
 
     public BaseEntity() {
         this.id = new ULID().nextULID();
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
         this.updatedAt = this.createdAt;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now().toString();
     }
 }

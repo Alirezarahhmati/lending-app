@@ -138,15 +138,17 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @CachePut(value = "users", key = "#user.id")
     @CacheEvict(value = "users_all", allEntries = true)
-    public void changeScore(User user, int delta) {
+    public UserMessage changeScore(User user, int delta) {
         log.debug("Changing score for userId: {} by delta: {}", user.getId(), delta);
 
         User existing = loadUser(user.getId());
         existing.setScore(existing.getScore() + delta);
-        saveInternal(existing);
+        User saved = saveInternal(existing);
 
-        log.info("User score updated for userId: {}. New score: {}", existing.getId(), existing.getScore());
+        log.info("User score updated for userId: {}. New score: {}", saved.getId(), saved.getScore());
+        return userMapper.toMessage(saved);
     }
+
 
     @Override
     public boolean existsByUsername(String username) {

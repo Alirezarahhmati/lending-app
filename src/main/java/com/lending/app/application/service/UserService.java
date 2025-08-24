@@ -5,7 +5,6 @@ import com.lending.app.model.record.user.CreateUserCommand;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.model.record.user.UserMessageSet;
-import org.springframework.data.repository.query.Param;
 
 public interface UserService {
     UserMessage save(CreateUserCommand command);
@@ -15,7 +14,7 @@ public interface UserService {
     UserMessage update(UpdateUserCommand command);
     User getUserForUpdate(String id);
     void delete();
-    void changeScore(User user, int delta);
+    UserMessage changeScore(User user, int delta);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 }

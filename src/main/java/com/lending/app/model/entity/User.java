@@ -41,7 +41,7 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private int score;
 
-    private LocalDateTime deletedAt;
+    private String deletedAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

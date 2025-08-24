@@ -7,6 +7,8 @@ import com.lending.app.exception.AlreadyExistsException;
 import com.lending.app.model.record.auth.AuthMessage;
 import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;
+import com.lending.app.model.record.user.CreateUserCommand;
+import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
 import com.lending.app.application.service.AuthService;
@@ -53,15 +55,11 @@ public class AuthServiceImpl implements AuthService {
             throw new AlreadyExistsException("Email");
         }
 
-        User toSave = new User();
-        toSave.setUsername(command.username());
-        toSave.setPassword(passwordEncoder.encode(command.password()));
-        toSave.setEmail(command.email());
-        toSave.setScore(bonus);
-        userService.save(toSave);
+        CreateUserCommand toSave = new CreateUserCommand(command.username(), passwordEncoder.encode(command.password()), command.email(), bonus);
+        UserMessage userMessage = userService.save(toSave);
 
-        String token = jwtService.generateToken(toSave.getUsername(), Map.of("uid", String.valueOf(toSave.getId())));
-        log.info("SignUp successful for username: {}", toSave.getUsername());
+        String token = jwtService.generateToken(toSave.username(), Map.of("uid", String.valueOf(userMessage.id())));
+        log.info("SignUp successful for username: {}", toSave.username());
         return new AuthMessage(token);
     }
 

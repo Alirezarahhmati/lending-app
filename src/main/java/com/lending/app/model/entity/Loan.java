@@ -39,6 +39,6 @@ public class Loan extends BaseEntity {
     @Column(nullable = false)
     private int awardScore;
 
-    private LocalDateTime deletedAt;
+    private String deletedAt;
 
 }
