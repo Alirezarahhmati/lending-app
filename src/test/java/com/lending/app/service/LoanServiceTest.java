@@ -8,7 +8,7 @@ import com.lending.app.model.record.loan.LoanMessage;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 import com.lending.app.repository.LoanRepository;
-import com.lending.app.util.calculatorUtils;
+import com.lending.app.util.CalculatorUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -64,8 +64,8 @@ class LoanServiceTest {
             when(loanRepository.save(loan)).thenReturn(loan);
             when(loanMapper.toMessage(loan)).thenReturn(loanMessage);
 
-            try (MockedStatic<calculatorUtils> mockedStatic = mockStatic(calculatorUtils.class)) {
-                mockedStatic.when(() -> calculatorUtils.calculateEachInstallmentAmount(1000, 10)).thenReturn(100L);
+            try (MockedStatic<CalculatorUtils> mockedStatic = mockStatic(CalculatorUtils.class)) {
+                mockedStatic.when(() -> CalculatorUtils.calculateEachInstallmentAmount(1000, 10)).thenReturn(100L);
 
                 LoanMessage res = loanService.save(command);
 

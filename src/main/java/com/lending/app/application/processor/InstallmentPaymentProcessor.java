@@ -8,7 +8,7 @@ import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.record.loan.LoanTransactionMessage;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
 import com.lending.app.model.record.loan.LoanInstallmentCommand;
-import com.lending.app.util.calculatorUtils;
+import com.lending.app.util.CalculatorUtils;
 import com.lending.app.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,7 +56,7 @@ public class InstallmentPaymentProcessor {
         long paidAmount = loanTransaction.getPaidAmount() + loanTransaction.getLoan().getEachInstallmentAmount();
         loanTransaction.setPaidAmount(paidAmount);
 
-        boolean isEnd = paidAmount >= calculatorUtils.calculateMustPaidAmount(loanTransaction.getLoan().getAmount(), loanTransaction.getLoan().getNumberOfInstallments());
+        boolean isEnd = paidAmount >= CalculatorUtils.calculateMustPaidAmount(loanTransaction.getLoan().getAmount(), loanTransaction.getLoan().getNumberOfInstallments());
         if (isEnd) {
             loanTransaction.setEndDate(LocalDateTime.now());
             log.info("LoanTransaction {} fully paid and marked as ended", loanTransaction.getId());

@@ -5,12 +5,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class calculatorUtils {
+public class CalculatorUtils {
 
     private static double annualRate;
 
-    public calculatorUtils(@Value("${annual.rate}") double annualRate) {
-        calculatorUtils.annualRate = annualRate;
+    public CalculatorUtils(@Value("${annual.rate}") double annualRate) {
+        CalculatorUtils.annualRate = annualRate;
     }
 
     public static long calculateEachInstallmentAmount(long loanAmount, int installmentNumber) {

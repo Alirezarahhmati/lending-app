@@ -10,7 +10,7 @@ import com.lending.app.model.entity.User;
 import com.lending.app.model.record.loan.LoanApplicationCommand;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
 import com.lending.app.model.record.loan.LoanTransactionMessage;
-import com.lending.app.util.calculatorUtils;
+import com.lending.app.util.CalculatorUtils;
 import com.lending.app.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -97,7 +97,7 @@ public class LoanApplicationProcessor {
         }
 
         User guarantor = userService.getUserForUpdate(application.guarantorId());
-        int neededFromGuarantor = calculatorUtils.calculateGuarantorScore(loan);
+        int neededFromGuarantor = CalculatorUtils.calculateGuarantorScore(loan);
         int neededFromBorrower = loan.getRequiredScore() - neededFromGuarantor;
 
         if (guarantor.getScore() < neededFromGuarantor) {

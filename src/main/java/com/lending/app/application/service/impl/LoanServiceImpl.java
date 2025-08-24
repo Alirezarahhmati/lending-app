@@ -8,7 +8,7 @@ import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 import com.lending.app.repository.LoanRepository;
 import com.lending.app.application.service.LoanService;
-import com.lending.app.util.calculatorUtils;
+import com.lending.app.util.CalculatorUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -37,7 +37,7 @@ public class LoanServiceImpl implements LoanService {
     public LoanMessage save(SaveLoanCommand command) {
         log.debug("Saving new loan: {}", command);
         Loan loan = loanMapper.toEntity(command);
-        loan.setEachInstallmentAmount(calculatorUtils.calculateEachInstallmentAmount(command.amount(), command.numberOfInstallments()));
+        loan.setEachInstallmentAmount(CalculatorUtils.calculateEachInstallmentAmount(command.amount(), command.numberOfInstallments()));
         Loan saved = loanRepository.save(loan);
         log.info("Loan saved with id: {}", saved.getId());
         return loanMapper.toMessage(saved);

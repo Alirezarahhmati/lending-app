@@ -1,4 +1,4 @@
-package com.lending.app.aop;
+package com.lending.app.aspect;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
