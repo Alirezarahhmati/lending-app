@@ -28,6 +28,7 @@ A lending application is a software solution designed to facilitate the process 
     *   Spring AMQP
     *   Spring Data Redis
     *   Spring Validation
+*   **OpenAPI (Swagger UI)**: For interactive API documentation.
 *   **PostgreSQL**: Relational database for persistent storage.
 *   **H2 Database**: Used for testing purposes.
 *   **JWT (JSON Web Tokens)**: For secure authentication and authorization.
@@ -40,7 +41,7 @@ A lending application is a software solution designed to facilitate the process 
 
 The project follows a layered architecture:
 
-*   `aop`: Aspect-Oriented Programming concerns, e.g., logging.
+*   `aspect`: Aspect-Oriented Programming concerns, e.g., logging.
 *   `application`: Contains business logic, services, and processors for core functionalities.
     *   `processor`: Handles complex business flows like `LoanApplicationProcessor` and `InstallmentPaymentProcessor`.
     *   `service`: Defines service interfaces and their implementations.
@@ -107,6 +108,8 @@ The project follows a layered architecture:
     The application will start on `http://localhost:8080` (or your configured port).
 
 ## API Endpoints
+
+Access the OpenAPI (Swagger UI) documentation at `http://localhost:8080/swagger-ui.html` after the application starts.
 
 ### Authentication
 *   `POST /api/auth/signup`: Register a new user.
