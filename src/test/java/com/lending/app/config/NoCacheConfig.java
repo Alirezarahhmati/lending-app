@@ -11,6 +11,6 @@ public class NoCacheConfig {
     @Bean
     @Primary
     public CacheManager cacheManager() {
-        return new NoOpCacheManager(); // disables caching
+        return new NoOpCacheManager();
     }
 }

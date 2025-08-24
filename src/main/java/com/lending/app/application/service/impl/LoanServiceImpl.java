@@ -10,6 +10,7 @@ import com.lending.app.model.record.loan.UpdateLoanCommand;
 import com.lending.app.repository.LoanRepository;
 import com.lending.app.application.service.LoanService;
 import com.lending.app.util.CalculatorUtils;
+import com.lending.app.exception.AlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -39,6 +40,10 @@ public class LoanServiceImpl implements LoanService {
     @CacheEvict(value = "loans_all", allEntries = true)
     public LoanMessage save(SaveLoanCommand command) {
         log.debug("Saving new loan: {}", command);
+        if (loanRepository.existsByNameAndDeletedAtIsNull(command.name())) {
+            log.warn("Loan creation failed: loan with name {} already exists and is active.", command.name());
+            throw new AlreadyExistsException("Loan with name " + command.name());
+        }
         Loan loan = loanMapper.toEntity(command);
         loan.setEachInstallmentAmount(CalculatorUtils.calculateEachInstallmentAmount(command.amount(), command.numberOfInstallments()));
         Loan saved = loanRepository.save(loan);
@@ -57,6 +62,10 @@ public class LoanServiceImpl implements LoanService {
                     log.warn("Loan not found with id: {}", command.id());
                     return new NotFoundException("Loan");
                 });
+        if (!existing.getName().equals(command.name()) && loanRepository.existsByNameAndDeletedAtIsNull(command.name())) {
+            log.warn("Loan update failed: loan with name {} already exists and is active.", command.name());
+            throw new AlreadyExistsException("Loan with name " + command.name());
+        }
         loanMapper.apply(command, existing);
         Loan saved = loanRepository.save(existing);
         log.info("Loan updated with id: {}", saved.getId());

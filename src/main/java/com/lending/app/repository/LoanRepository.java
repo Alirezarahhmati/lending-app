@@ -11,6 +11,20 @@ import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<Loan, String> {
 
+    @Query(
+            value = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM loan
+            WHERE name = :name
+              AND deleted_at IS NULL
+        )
+    """,
+            nativeQuery = true
+    )
+    boolean existsByNameAndDeletedAtIsNull(@Param("name") String name);
+
+
     @Override
     @Query(
             value = """

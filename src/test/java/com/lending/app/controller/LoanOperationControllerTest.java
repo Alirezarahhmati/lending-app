@@ -7,6 +7,7 @@ import com.lending.app.model.entity.Installment;
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.model.entity.User;
+import com.lending.app.model.enums.Role;
 import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.loan.LoanApplicationCommand;
 import com.lending.app.model.record.loan.LoanApplicationMessage;
@@ -75,6 +76,7 @@ class LoanOperationControllerTest {
         borrower.setPassword("password");
         borrower.setEmail("test@example.com");
         borrower.setScore(100);
+        borrower.setRole(Role.USER);
         borrower = userRepository.save(borrower);
 
         loan = new Loan();

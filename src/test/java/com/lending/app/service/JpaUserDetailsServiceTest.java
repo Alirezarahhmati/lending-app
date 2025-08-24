@@ -2,6 +2,7 @@ package com.lending.app.service;
 
 import com.lending.app.application.service.impl.JpaUserDetailsService;
 import com.lending.app.model.entity.User;
+import com.lending.app.model.enums.Role;
 import com.lending.app.repository.UserRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,8 @@ class JpaUserDetailsServiceTest {
         User entity = new User();
         entity.setUsername(JpaUserDetailsServiceTest.USERNAME);
         entity.setPassword(JpaUserDetailsServiceTest.PASSWORD);
+        entity.setEmail(JpaUserDetailsServiceTest.USERNAME);
+        entity.setRole(Role.USER);
         return entity;
     }
 
@@ -51,7 +54,9 @@ class JpaUserDetailsServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getUsername()).isEqualTo(USERNAME);
             assertThat(result.getPassword()).isEqualTo(PASSWORD);
-            assertThat(result.getAuthorities()).isEmpty();
+            assertThat(result.getAuthorities())
+                    .extracting("authority")
+                    .containsExactly("ROLE_USER");
         }
 
         @Test

@@ -10,6 +10,7 @@ import org.mapstruct.*;
 public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "role", source = "role")
     User toEntity(CreateUserCommand command);
 
     UserMessage toMessage(User user);

@@ -46,6 +46,7 @@ class LoanServiceTest {
     void setUp() {
         loan = new Loan();
         loan.setId("loan1");
+        loan.setName("Loan 1");
 
         loanMessage = new LoanMessage("loan1", "Loan 1", 1000, 10, 0, 0);
     }

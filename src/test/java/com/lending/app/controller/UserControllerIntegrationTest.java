@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lending.app.Application;
 import com.lending.app.model.entity.User;
+import com.lending.app.model.enums.Role;
 import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
@@ -50,15 +51,6 @@ class UserControllerIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private LoanTransactionRepository loanTransactionRepository;
-
-    @Autowired
-    private LoanRepository loanRepository;
-
-    @Autowired
-    private InstallmentRepository installmentRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private String testUserId;
@@ -73,6 +65,7 @@ class UserControllerIntegrationTest {
         user.setPassword(passwordEncoder.encode("password123"));
         user.setEmail("test@example.com");
         user.setScore(10);
+        user.setRole(Role.USER);
         user = userRepository.save(user);
         testUserId = user.getId();
 

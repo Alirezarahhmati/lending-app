@@ -44,11 +44,11 @@ public class UserServiceImpl implements UserService {
         log.debug("Creating new user: {}", command.username());
 
         if (userRepository.existsByUsername(command.username())) {
-            log.warn("User creation failed: username {} already exists", command.username());
+            log.warn("User creation failed: username {} already exists and is active", command.username());
             throw new AlreadyExistsException(command.username());
         }
         if (userRepository.existsByEmail(command.email())) {
-            log.warn("User creation failed: email {} already exists", command.email());
+            log.warn("User creation failed: email {} already exists and is active", command.email());
             throw new AlreadyExistsException("Email");
         }
 
@@ -97,16 +97,19 @@ public class UserServiceImpl implements UserService {
         User existing = loadUser(id);
 
         if (command.username() != null && !existing.getUsername().equals(command.username()) && userRepository.existsByUsername(command.username())) {
-            log.warn("User update failed: username {} already exists", command.username());
+            log.warn("User update failed: username {} already exists and is active", command.username());
             throw new AlreadyExistsException("Username");
         }
         if (command.email() != null && !existing.getEmail().equals(command.email()) && userRepository.existsByEmail(command.email())) {
-            log.warn("User update failed: email {} already exists", command.email());
+            log.warn("User update failed: email {} already exists and is active", command.email());
             throw new AlreadyExistsException("Email");
         }
 
         userMapper.apply(command, existing);
-        existing.setPassword(passwordEncoder.encode(command.password()));
+        // The password encoding needs to be handled here if command.password() is not null
+        if (command.password() != null) {
+            existing.setPassword(passwordEncoder.encode(command.password()));
+        }
         User saved = saveInternal(existing);
         log.info("User updated successfully with id: {}", saved.getId());
         return userMapper.toMessage(saved);

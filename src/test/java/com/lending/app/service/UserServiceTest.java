@@ -4,6 +4,7 @@ import com.lending.app.exception.AlreadyExistsException;
 import com.lending.app.exception.NotFoundException;
 import com.lending.app.mapper.UserMapper;
 import com.lending.app.model.entity.User;
+import com.lending.app.model.enums.Role;
 import com.lending.app.model.record.user.CreateUserCommand;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
@@ -68,7 +69,7 @@ class UserServiceTest {
         @Test
         @DisplayName("should create user successfully")
         void shouldCreateUserSuccessfully() {
-            CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10);
+            CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10, Role.USER);
             when(userRepository.existsByUsername("ali")).thenReturn(false);
             when(userRepository.existsByEmail("ali@example.com")).thenReturn(false);
             when(userMapper.toEntity(any(CreateUserCommand.class))).thenReturn(user);
@@ -83,7 +84,7 @@ class UserServiceTest {
         @Test
         @DisplayName("should throw AlreadyExistsException when username exists")
         void shouldThrowWhenUsernameExists() {
-            CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10);
+            CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10, Role.USER);
             when(userRepository.existsByUsername("ali")).thenReturn(true);
 
             assertThatThrownBy(() -> userService.save(command)).isInstanceOf(AlreadyExistsException.class);
@@ -92,7 +93,7 @@ class UserServiceTest {
         @Test
         @DisplayName("should throw AlreadyExistsException when email exists")
         void shouldThrowWhenEmailExists() {
-            CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10);
+            CreateUserCommand command = new CreateUserCommand("ali", "secret123", "ali@example.com", 10, Role.USER);
             when(userRepository.existsByUsername("ali")).thenReturn(false);
             when(userRepository.existsByEmail("ali@example.com")).thenReturn(true);
 

@@ -8,6 +8,7 @@ import com.lending.app.model.record.loan.LoanMessage;
 import com.lending.app.model.record.loan.LoanMessageSet;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
+import com.lending.app.repository.LoanRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,6 +39,9 @@ public class LoanControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
+    LoanRepository loanRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     private String savedLoanId;
@@ -45,7 +49,9 @@ public class LoanControllerIntegrationTest {
     private final String baseUrl = "/api/loans";
 
     @BeforeEach
+    @WithMockUser(username = "test", roles = "ADMIN")
     void setupLoan() throws Exception {
+        loanRepository.deleteAll();
         SaveLoanCommand saveCommand = new SaveLoanCommand("Test Loan Setup", 1500, 12, 0, 0);
         MvcResult saveResult = mockMvc.perform(post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -65,7 +71,7 @@ public class LoanControllerIntegrationTest {
     @DisplayName("Save Loan Tests")
     class SaveLoan {
         @Test
-        @WithMockUser(username = "test")
+        @WithMockUser(username = "test", roles = "ADMIN")
         void testSaveLoan() throws Exception {
             SaveLoanCommand saveCommand = new SaveLoanCommand("New Loan", 1000, 10, 0, 0);
 
@@ -90,7 +96,7 @@ public class LoanControllerIntegrationTest {
     @DisplayName("Get Loan Tests")
     class GetLoan {
         @Test
-        @WithMockUser(username = "test")
+        @WithMockUser(username = "test", roles = "ADMIN")
         void testGetLoan() throws Exception {
             MvcResult getResult = mockMvc.perform(get(baseUrl + "/" + savedLoanId))
                     .andExpect(status().isOk())
@@ -111,7 +117,7 @@ public class LoanControllerIntegrationTest {
     @DisplayName("Update Loan Tests")
     class UpdateLoan {
         @Test
-        @WithMockUser(username = "test")
+        @WithMockUser(username = "test", roles = "ADMIN")
         void testUpdateLoan() throws Exception {
             UpdateLoanCommand updateCommand = new UpdateLoanCommand(savedLoanId, 0L, "Updated Loan", 3000L, 30, 10, 20);
 
@@ -137,7 +143,7 @@ public class LoanControllerIntegrationTest {
     @DisplayName("Delete Loan Tests")
     class DeleteLoan {
         @Test
-        @WithMockUser(username = "test")
+        @WithMockUser(username = "test", roles = "ADMIN")
         void testDeleteLoan() throws Exception {
             mockMvc.perform(delete(baseUrl + "/" + savedLoanId))
                     .andExpect(status().isOk());
@@ -151,7 +157,7 @@ public class LoanControllerIntegrationTest {
     @DisplayName("Get All Loans Tests")
     class GetAllLoans {
         @Test
-        @WithMockUser(username = "test")
+        @WithMockUser(username = "test", roles = "ADMIN")
         void testGetAllLoans() throws Exception {
             MvcResult getResult = mockMvc.perform(get(baseUrl))
                     .andExpect(status().isOk())

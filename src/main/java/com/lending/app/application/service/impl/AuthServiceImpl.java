@@ -8,6 +8,7 @@ import com.lending.app.model.record.auth.AuthMessage;
 import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;
 import com.lending.app.model.record.user.CreateUserCommand;
+import com.lending.app.model.enums.Role;
 import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
@@ -55,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AlreadyExistsException("Email");
         }
 
-        CreateUserCommand toSave = new CreateUserCommand(command.username(), passwordEncoder.encode(command.password()), command.email(), bonus);
+        CreateUserCommand toSave = new CreateUserCommand(command.username(), passwordEncoder.encode(command.password()), command.email(), bonus, Role.USER);
         UserMessage userMessage = userService.save(toSave);
 
         String token = jwtService.generateToken(toSave.username(), Map.of("uid", String.valueOf(userMessage.id())));
