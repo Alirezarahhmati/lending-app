@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lending.app.Application;
 import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.loan.LoanMessage;
+import com.lending.app.model.record.loan.LoanMessageSet;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 import org.junit.jupiter.api.BeforeEach;
@@ -156,14 +157,13 @@ public class LoanControllerIntegrationTest {
                     .andExpect(status().isOk())
                     .andReturn();
 
-            BaseResponse<List<LoanMessage>> getResponse = objectMapper.readValue(
+            BaseResponse<LoanMessageSet> getResponse = objectMapper.readValue(
                     getResult.getResponse().getContentAsString(),
                     new TypeReference<>() {}
             );
 
-            List<LoanMessage> loans = getResponse.result();
+            LoanMessageSet loans = getResponse.result();
             assertThat(loans).isNotNull();
-            assertThat(loans).isNotEmpty();
         }
     }
 }

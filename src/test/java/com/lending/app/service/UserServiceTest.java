@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -31,9 +32,15 @@ import static org.mockito.Mockito.*;
 @DisplayName("UserService Tests")
 class UserServiceTest {
 
-    @Mock private UserRepository userRepository;
-    @Mock private UserMapper userMapper;
-    @InjectMocks private UserServiceImpl userService;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private UserMapper userMapper;
+    @InjectMocks
+    private UserServiceImpl userService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
 
     private User user;
     private UserMessage userMessage;
@@ -127,6 +134,7 @@ class UserServiceTest {
         void shouldUpdateUserSuccessfully() {
             withCurrentUser("01HUID", () -> {
                 UpdateUserCommand command = new UpdateUserCommand("alireza", "adminadmin", null, 15);
+                when(passwordEncoder.encode("adminadmin")).thenReturn("adminadmin");
                 when(userRepository.findById("01HUID")).thenReturn(Optional.of(user));
                 doAnswer(inv -> null).when(userMapper).apply(any(UpdateUserCommand.class), any(User.class));
                 when(userRepository.save(any(User.class))).thenReturn(user);
