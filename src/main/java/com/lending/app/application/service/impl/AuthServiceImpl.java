@@ -1,5 +1,6 @@
 package com.lending.app.application.service.impl;
 
+import com.lending.app.application.service.UserService;
 import com.lending.app.exception.UnauthorizedException;
 import com.lending.app.model.entity.User;
 import com.lending.app.exception.AlreadyExistsException;
@@ -27,13 +28,13 @@ public class AuthServiceImpl implements AuthService {
     @Value("${signup.bonus}")
     private int bonus;
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
+    public AuthServiceImpl(UserService userService, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+        this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
@@ -43,11 +44,11 @@ public class AuthServiceImpl implements AuthService {
     public AuthMessage signUp(SignUpCommand command) {
         log.info("SignUp attempt for username: {}, email: {}", command.username(), command.email());
 
-        if (userRepository.existsByUsername(command.username())) {
+        if (userService.existsByUsername(command.username())) {
             log.warn("SignUp failed: username {} already exists", command.username());
             throw new AlreadyExistsException(command.username());
         }
-        if (userRepository.existsByEmail(command.email())) {
+        if (userService.existsByEmail(command.email())) {
             log.warn("SignUp failed: email {} already exists", command.email());
             throw new AlreadyExistsException("Email");
         }
@@ -57,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         toSave.setPassword(passwordEncoder.encode(command.password()));
         toSave.setEmail(command.email());
         toSave.setScore(bonus);
-        userRepository.save(toSave);
+        userService.save(toSave);
 
         String token = jwtService.generateToken(toSave.getUsername(), Map.of("uid", String.valueOf(toSave.getId())));
         log.info("SignUp successful for username: {}", toSave.getUsername());

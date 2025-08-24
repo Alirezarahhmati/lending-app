@@ -1,12 +1,12 @@
 package com.lending.app.service;
 
+import com.lending.app.application.service.UserService;
 import com.lending.app.exception.AlreadyExistsException;
 import com.lending.app.exception.UnauthorizedException;
 import com.lending.app.model.entity.User;
 import com.lending.app.model.record.auth.AuthMessage;
 import com.lending.app.model.record.auth.SignInCommand;
 import com.lending.app.model.record.auth.SignUpCommand;
-import com.lending.app.repository.UserRepository;
 import com.lending.app.security.JwtService;
 import com.lending.app.application.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("AuthService Tests")
 class AuthServiceTest {
 
-    @Mock private UserRepository userRepository;
+    @Mock private UserService userService;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtService jwtService;
     @Mock private AuthenticationManager authenticationManager;
@@ -71,10 +71,10 @@ class AuthServiceTest {
         @Test
         @DisplayName("should sign up successfully and return token with correct claims")
         void shouldSignUpSuccessfully() {
-            when(userRepository.existsByUsername("alireza")).thenReturn(false);
-            when(userRepository.existsByEmail("alireza@example.com")).thenReturn(false);
+            when(userService.existsByUsername("alireza")).thenReturn(false);
+            when(userService.existsByEmail("alireza@example.com")).thenReturn(false);
             when(passwordEncoder.encode("password123")).thenReturn("encoded");
-            when(userRepository.save(any(User.class))).thenReturn(savedUser);
+            when(userService.save(any(User.class))).thenReturn(savedUser);
             when(jwtService.generateToken(eq("alireza"), any(Map.class))).thenReturn("jwt-token");
 
             AuthMessage res = authService.signUp(signUpCommand);
@@ -82,35 +82,35 @@ class AuthServiceTest {
             assertThat(res).isNotNull();
             assertThat(res.token()).isEqualTo("jwt-token");
 
-            verify(userRepository).save(argThat(user ->
-                    user.getUsername().equals("alireza") &&
-                            user.getEmail().equals("alireza@example.com") &&
-                            user.getPassword().equals("encoded") &&
-                            user.getScore() == 0
+            verify(userService).save((User) argThat(user ->
+                    ((User) user).getUsername().equals("alireza") &&
+                            ((User) user).getEmail().equals("alireza@example.com") &&
+                            ((User) user).getPassword().equals("encoded") &&
+                            ((User) user).getScore() == 0
             ));
         }
 
         @Test
         @DisplayName("should throw AlreadyExistsException when username exists")
         void shouldThrowOnDuplicateUsername() {
-            when(userRepository.existsByUsername("alireza")).thenReturn(true);
+            when(userService.existsByUsername("alireza")).thenReturn(true);
 
             assertThatThrownBy(() -> authService.signUp(signUpCommand))
                     .isInstanceOf(AlreadyExistsException.class);
 
-            verify(userRepository, never()).save(any());
+            verify(userService, never()).save(any(User.class));
         }
 
         @Test
         @DisplayName("should throw AlreadyExistsException when email exists")
         void shouldThrowOnDuplicateEmail() {
-            when(userRepository.existsByUsername("alireza")).thenReturn(false);
-            when(userRepository.existsByEmail("alireza@example.com")).thenReturn(true);
+            when(userService.existsByUsername("alireza")).thenReturn(false);
+            when(userService.existsByEmail("alireza@example.com")).thenReturn(true);
 
             assertThatThrownBy(() -> authService.signUp(signUpCommand))
                     .isInstanceOf(AlreadyExistsException.class);
 
-            verify(userRepository, never()).save(any());
+            verify(userService, never()).save(any(User.class));
         }
     }
 

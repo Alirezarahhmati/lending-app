@@ -96,9 +96,7 @@ public interface UserRepository extends JpaRepository<User, String> {
     )
     void softDeleteById(@Param("id") String id);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "5000"))
-    @Query("SELECT u FROM User u WHERE u.id = :id AND u.deletedAt IS NULL")
+    @Query(value = "SELECT * FROM users u WHERE u.id = :id AND u.deleted_at IS NULL FOR UPDATE", nativeQuery = true)
     Optional<User> findByIdForUpdate(@Param("id") String id);
 
 }

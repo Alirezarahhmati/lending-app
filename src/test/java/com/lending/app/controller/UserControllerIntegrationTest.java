@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = Application.class)
+@SpringBootTest(classes = Application.class, properties = "spring.profiles.active=test")
 @AutoConfigureMockMvc
 @Import({NoOpCacheManager.class})
 @DisplayName("UserController Integration Tests")
@@ -66,10 +66,7 @@ class UserControllerIntegrationTest {
 
     @BeforeEach
     void setupUser() {
-        installmentRepository.deleteAll();
-        loanTransactionRepository.deleteAll();
-        loanRepository.deleteAll();
-        userRepository.deleteAll();
+
 
         User user = new User();
         user.setUsername("test");

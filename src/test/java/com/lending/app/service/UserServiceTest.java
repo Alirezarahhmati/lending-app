@@ -219,4 +219,53 @@ class UserServiceTest {
             verify(userRepository).save(user);
         }
     }
+
+    @Nested
+    @DisplayName("Existence Checks")
+    class ExistenceTests {
+
+        @Test
+        @DisplayName("should return true when username exists")
+        void shouldReturnTrueWhenUsernameExists() {
+            when(userRepository.existsByUsername("ali")).thenReturn(true);
+
+            boolean exists = userService.existsByUsername("ali");
+
+            assertThat(exists).isTrue();
+            verify(userRepository).existsByUsername("ali");
+        }
+
+        @Test
+        @DisplayName("should return false when username does not exist")
+        void shouldReturnFalseWhenUsernameDoesNotExist() {
+            when(userRepository.existsByUsername("ali")).thenReturn(false);
+
+            boolean exists = userService.existsByUsername("ali");
+
+            assertThat(exists).isFalse();
+            verify(userRepository).existsByUsername("ali");
+        }
+
+        @Test
+        @DisplayName("should return true when email exists")
+        void shouldReturnTrueWhenEmailExists() {
+            when(userRepository.existsByEmail("ali@example.com")).thenReturn(true);
+
+            boolean exists = userService.existsByEmail("ali@example.com");
+
+            assertThat(exists).isTrue();
+            verify(userRepository).existsByEmail("ali@example.com");
+        }
+
+        @Test
+        @DisplayName("should return false when email does not exist")
+        void shouldReturnFalseWhenEmailDoesNotExist() {
+            when(userRepository.existsByEmail("ali@example.com")).thenReturn(false);
+
+            boolean exists = userService.existsByEmail("ali@example.com");
+
+            assertThat(exists).isFalse();
+            verify(userRepository).existsByEmail("ali@example.com");
+        }
+    }
 }

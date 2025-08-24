@@ -148,6 +148,16 @@ public class UserServiceImpl implements UserService {
         log.info("User score updated for userId: {}. New score: {}", existing.getId(), existing.getScore());
     }
 
+    @Override
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
     private User saveInternal(User user) {
         log.debug("Persisting user entity with username: {}", user.getUsername());
         User saved = userRepository.save(user);

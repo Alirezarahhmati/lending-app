@@ -38,7 +38,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = Application.class)
+@SpringBootTest(classes = Application.class, properties = "spring.profiles.active=test")
 @AutoConfigureMockMvc
 @Import({NoOpCacheManager.class})
 @DisplayName("LoanOperationController Integration Tests")
@@ -69,10 +69,6 @@ class LoanOperationControllerTest {
 
     @BeforeEach
     void setup() {
-        installmentRepository.deleteAll();
-        loanTransactionRepository.deleteAll();
-        loanRepository.deleteAll();
-        userRepository.deleteAll();
 
         borrower = new User();
         borrower.setUsername("test");
