@@ -5,7 +5,10 @@ import com.lending.app.exception.NotFoundException;
 import com.lending.app.model.entity.LoanTransaction;
 import com.lending.app.repository.LoanTransactionRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -18,13 +21,17 @@ public class LoanTransactionServiceImpl implements LoanTransactionService {
     }
 
     @Override
-    public void saveAndFlush(LoanTransaction loanTransaction) {
+    @Transactional
+    @CachePut(value = "loan_transactions", key = "#result.id")
+    public LoanTransaction saveAndFlush(LoanTransaction loanTransaction) {
         log.debug("Saving and flushing LoanTransaction for loanId: {}", loanTransaction.getLoan().getId());
-        repository.saveAndFlush(loanTransaction);
-        log.info("LoanTransaction saved and flushed with id: {}", loanTransaction.getId());
+        LoanTransaction saved = repository.saveAndFlush(loanTransaction);
+        log.info("LoanTransaction saved and flushed with id: {}", saved.getId());
+        return saved;
     }
 
     @Override
+    @Cacheable(value = "loan_transactions", key = "#id")
     public LoanTransaction findById(String id) {
         log.debug("Fetching LoanTransaction with id: {}", id);
         LoanTransaction transaction = repository.findById(id)
