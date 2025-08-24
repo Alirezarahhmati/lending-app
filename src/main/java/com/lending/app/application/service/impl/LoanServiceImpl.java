@@ -10,6 +10,9 @@ import com.lending.app.repository.LoanRepository;
 import com.lending.app.application.service.LoanService;
 import com.lending.app.util.calculatorUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,9 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @Transactional
+    @CachePut(value = "loans", key = "#result.id")
+    @CacheEvict(value = "loans_all", allEntries = true)
     public LoanMessage save(SaveLoanCommand command) {
         log.debug("Saving new loan: {}", command);
         Loan loan = loanMapper.toEntity(command);
@@ -38,6 +44,9 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @Transactional
+    @CachePut(value = "loans", key = "#command.id")
+    @CacheEvict(value = "loans_all", allEntries = true)
     public LoanMessage update(UpdateLoanCommand command) {
         log.debug("Updating loan with id: {}", command.id());
         Loan existing = loanRepository.findById(command.id())
@@ -52,6 +61,8 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = {"loans", "loans_all"}, key = "#id")
     public void delete(String id) {
         log.debug("Deleting loan with id: {}", id);
         if (!loanRepository.existsById(id)) {
@@ -63,6 +74,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @Cacheable(value = "loans", key = "#id")
     public LoanMessage get(String id) {
         log.debug("Getting loan with id: {}", id);
         return loanMapper.toMessage(getLoan(id));
@@ -79,6 +91,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @Cacheable(value = "loans_all", key = "#root.methodName")
     public List<LoanMessage> getAll() {
         log.debug("Fetching all loans");
         List<LoanMessage> loans = loanRepository.findAll().stream()
