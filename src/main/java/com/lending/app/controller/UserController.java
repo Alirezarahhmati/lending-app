@@ -40,10 +40,10 @@ public class UserController {
         return BaseResponse.success(updated);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete() {
-        userService.delete();
+    public void delete(@PathVariable String id) {
+        userService.delete(id);
     }
 }
 

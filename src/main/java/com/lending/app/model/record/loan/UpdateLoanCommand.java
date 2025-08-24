@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 
 public record UpdateLoanCommand(
         @NotBlank String id,
-        @NotNull Long version,
         String name,
         @Min(1) Long amount,
         @Min(1) Integer numberOfInstallments,

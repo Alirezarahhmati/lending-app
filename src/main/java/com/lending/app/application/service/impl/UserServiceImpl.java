@@ -130,8 +130,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     @CacheEvict(value = {"users", "users_all"}, allEntries = true)
-    public void delete() {
-        String id = SecurityUtils.getCurrentUserId();
+    public void delete(String id) {
         log.debug("Deleting user with id: {}", id);
         if (!userRepository.existsById(id)) {
             log.warn("User not found for deletion with id: {}", id);

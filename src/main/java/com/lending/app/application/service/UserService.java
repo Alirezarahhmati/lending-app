@@ -13,7 +13,7 @@ public interface UserService {
     UserMessageSet getAll();
     UserMessage update(UpdateUserCommand command);
     User getUserForUpdate(String id);
-    void delete();
+    void delete(String id);
     UserMessage changeScore(User user, int delta);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
