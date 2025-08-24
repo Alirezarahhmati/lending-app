@@ -2,6 +2,7 @@ package com.lending.app.application.service;
 
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.record.loan.LoanMessage;
+import com.lending.app.model.record.loan.LoanMessageSet;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 
@@ -13,7 +14,7 @@ public interface LoanService {
     void delete(String id);
     LoanMessage get(String id);
     Loan getLoan(String id);
-    List<LoanMessage> getAll();
+    LoanMessageSet getAll();
 }
 
 

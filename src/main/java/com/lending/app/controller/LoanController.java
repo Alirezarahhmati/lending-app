@@ -3,6 +3,7 @@ package com.lending.app.controller;
 import com.lending.app.application.service.LoanService;
 import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.loan.LoanMessage;
+import com.lending.app.model.record.loan.LoanMessageSet;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 import jakarta.validation.Valid;
@@ -43,7 +44,7 @@ public class LoanController {
     }
 
     @GetMapping
-    public ResponseEntity<BaseResponse<List<LoanMessage>>> getAll() {
+    public ResponseEntity<BaseResponse<LoanMessageSet>> getAll() {
         return BaseResponse.success(loanService.getAll());
     }
 }

@@ -5,6 +5,7 @@ import com.lending.app.exception.NotFoundException;
 import com.lending.app.mapper.LoanMapper;
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.record.loan.LoanMessage;
+import com.lending.app.model.record.loan.LoanMessageSet;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 import com.lending.app.repository.LoanRepository;
@@ -182,18 +183,19 @@ class LoanServiceTest {
             when(loanRepository.findAll()).thenReturn(List.of(loan));
             when(loanMapper.toMessage(loan)).thenReturn(loanMessage);
 
-            List<LoanMessage> res = loanService.getAll();
+            LoanMessageSet res = loanService.getAll();
 
-            assertThat(res).containsExactly(loanMessage);
+            assertThat(res.loanMessages()).containsExactly(loanMessage);
         }
 
         @Test
-        void shouldReturnEmptyListWhenNoLoans() {
+        void shouldReturnEmptySetWhenNoLoans() {
             when(loanRepository.findAll()).thenReturn(List.of());
 
-            List<LoanMessage> res = loanService.getAll();
+            LoanMessageSet res = loanService.getAll();
 
-            assertThat(res).isEmpty();
+            assertThat(res.loanMessages()).isEmpty();
         }
     }
+
 }

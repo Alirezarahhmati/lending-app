@@ -4,6 +4,7 @@ import com.lending.app.exception.NotFoundException;
 import com.lending.app.mapper.LoanMapper;
 import com.lending.app.model.entity.Loan;
 import com.lending.app.model.record.loan.LoanMessage;
+import com.lending.app.model.record.loan.LoanMessageSet;
 import com.lending.app.model.record.loan.SaveLoanCommand;
 import com.lending.app.model.record.loan.UpdateLoanCommand;
 import com.lending.app.repository.LoanRepository;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -92,12 +95,12 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     @Cacheable(value = "loans_all", key = "#root.methodName")
-    public List<LoanMessage> getAll() {
+    public LoanMessageSet getAll() {
         log.debug("Fetching all loans");
-        List<LoanMessage> loans = loanRepository.findAll().stream()
+        Set<LoanMessage> loans = loanRepository.findAll().stream()
                 .map(loanMapper::toMessage)
-                .toList();
+                .collect(Collectors.toSet());
         log.info("Fetched {} loans", loans.size());
-        return loans;
+        return new LoanMessageSet(loans);
     }
 }
