@@ -4,17 +4,22 @@ import com.lending.app.model.record.user.CreateUserCommand;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
 import com.lending.app.model.entity.User;
+import com.lending.app.model.record.user.UserMessageSet;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.application.service.UserService;
 import com.lending.app.mapper.UserMapper;
 import com.lending.app.util.SecurityUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
 import com.lending.app.exception.NotFoundException;
 import com.lending.app.exception.AlreadyExistsException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -29,6 +34,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    @CachePut(value = "users", key = "#result.id")
+    @CacheEvict(value = "users_all", allEntries = true)
     public UserMessage save(CreateUserCommand command) {
         log.debug("Creating new user: {}", command.username());
 
@@ -41,12 +49,15 @@ public class UserServiceImpl implements UserService {
             throw new AlreadyExistsException("Email");
         }
 
-        User saved = save(userMapper.toEntity(command));
+        User saved = saveInternal(userMapper.toEntity(command));
         log.info("User created successfully with id: {}", saved.getId());
         return userMapper.toMessage(saved);
     }
 
     @Override
+    @Transactional
+    @CachePut(value = "users", key = "#result.id")
+    @CacheEvict(value = "users_all", allEntries = true)
     public User save(User user) {
         log.debug("Saving user entity with username: {}", user.getUsername());
         User saved = userRepository.save(user);
@@ -55,37 +66,32 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "T(com.lending.app.util.SecurityUtils).getCurrentUserId()")
     public UserMessage get() {
         String id = SecurityUtils.getCurrentUserId();
         log.debug("Fetching current user with id: {}", id);
-        return userMapper.toMessage(getUser(id));
+        return userMapper.toMessage(loadUser(id));
     }
 
     @Override
-    public User getUser(String id) {
-        log.debug("Fetching user entity with id: {}", id);
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("User not found with id: {}", id);
-                    return new NotFoundException("User");
-                });
-        log.info("User fetched with id: {}", user.getId());
-        return user;
-    }
-
-    @Override
-    public List<UserMessage> getAll() {
+    @Cacheable(value = "users_all", key = "#root.methodName")
+    public UserMessageSet getAll() {
         log.debug("Fetching all users");
-        List<UserMessage> users = userRepository.findAll().stream().map(userMapper::toMessage).toList();
+        Set<UserMessage> users = userRepository.findAll().stream()
+                .map(userMapper::toMessage)
+                .collect(Collectors.toSet());
         log.info("Fetched {} users", users.size());
-        return users;
+        return new UserMessageSet(users);
     }
 
     @Override
+    @Transactional
+    @CachePut(value = "users", key = "#result.id")
+    @CacheEvict(value = "users_all", allEntries = true)
     public UserMessage update(UpdateUserCommand command) {
         String id = SecurityUtils.getCurrentUserId();
         log.debug("Updating user with id: {}", id);
-        User existing = getUser(id);
+        User existing = loadUser(id);
 
         if (command.username() != null && !existing.getUsername().equals(command.username()) && userRepository.existsByUsername(command.username())) {
             log.warn("User update failed: username {} already exists", command.username());
@@ -97,7 +103,7 @@ public class UserServiceImpl implements UserService {
         }
 
         userMapper.apply(command, existing);
-        User saved = userRepository.save(existing);
+        User saved = saveInternal(existing);
         log.info("User updated successfully with id: {}", saved.getId());
         return userMapper.toMessage(saved);
     }
@@ -115,6 +121,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = {"users", "users_all"}, allEntries = true)
     public void delete() {
         String id = SecurityUtils.getCurrentUserId();
         log.debug("Deleting user with id: {}", id);
@@ -127,10 +135,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    @CachePut(value = "users", key = "#user.id")
+    @CacheEvict(value = "users_all", allEntries = true)
     public void changeScore(User user, int delta) {
         log.debug("Changing score for userId: {} by delta: {}", user.getId(), delta);
-        user.setScore(user.getScore() + delta);
-        userRepository.save(user);
-        log.info("User score updated for userId: {}. New score: {}", user.getId(), user.getScore());
+
+        User existing = loadUser(user.getId());
+        existing.setScore(existing.getScore() + delta);
+        saveInternal(existing);
+
+        log.info("User score updated for userId: {}. New score: {}", existing.getId(), existing.getScore());
+    }
+
+    private User saveInternal(User user) {
+        log.debug("Persisting user entity with username: {}", user.getUsername());
+        User saved = userRepository.save(user);
+        log.info("User entity persisted with id: {}", saved.getId());
+        return saved;
+    }
+
+    private User loadUser(String id) {
+        log.debug("Loading user entity from database with id: {}", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("User not found with id: {}", id);
+                    return new NotFoundException("User");
+                });
+        log.info("User loaded from database with id: {}", user.getId());
+        return user;
     }
 }

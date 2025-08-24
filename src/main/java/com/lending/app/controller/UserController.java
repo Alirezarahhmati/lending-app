@@ -4,14 +4,12 @@ import com.lending.app.application.service.UserService;
 import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
+import com.lending.app.model.record.user.UserMessageSet;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-
-import java.util.List;
-import com.lending.app.util.SecurityUtils;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,8 +29,8 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<BaseResponse<List<UserMessage>>> getAll() {
-        List<UserMessage> users = userService.getAll();
+    public ResponseEntity<BaseResponse<UserMessageSet>> getAll() {
+        UserMessageSet users = userService.getAll();
         return BaseResponse.success(users);
     }
 
