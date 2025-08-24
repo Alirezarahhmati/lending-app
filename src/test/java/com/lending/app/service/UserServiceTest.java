@@ -134,7 +134,7 @@ class UserServiceTest {
         @DisplayName("should update user successfully")
         void shouldUpdateUserSuccessfully() {
             withCurrentUser("01HUID", () -> {
-                UpdateUserCommand command = new UpdateUserCommand("alireza", "adminadmin", null, 15);
+                UpdateUserCommand command = new UpdateUserCommand("alireza", "adminadmin", null);
                 when(passwordEncoder.encode("adminadmin")).thenReturn("adminadmin");
                 when(userRepository.findById("01HUID")).thenReturn(Optional.of(user));
                 doAnswer(inv -> null).when(userMapper).apply(any(UpdateUserCommand.class), any(User.class));
@@ -150,7 +150,7 @@ class UserServiceTest {
         @DisplayName("should throw NotFoundException when user to update not found")
         void shouldThrowWhenUpdateUserNotFound() {
             withCurrentUser("01MISSING", () -> {
-                UpdateUserCommand command = new UpdateUserCommand("alireza", "adminadmin", null, 15);
+                UpdateUserCommand command = new UpdateUserCommand("alireza", "adminadmin", null);
                 when(userRepository.findById("01MISSING")).thenReturn(Optional.empty());
 
                 assertThatThrownBy(() -> userService.update(command)).isInstanceOf(NotFoundException.class);
@@ -161,7 +161,7 @@ class UserServiceTest {
         @DisplayName("should throw AlreadyExistsException when updating username to existing one")
         void shouldThrowWhenUpdateUsernameExists() {
             withCurrentUser("01HUID", () -> {
-                UpdateUserCommand command = new UpdateUserCommand("existingUsername", null, null, 15);
+                UpdateUserCommand command = new UpdateUserCommand("existingUsername", null, null);
                 when(userRepository.findById("01HUID")).thenReturn(Optional.of(user));
                 when(userRepository.existsByUsername("existingUsername")).thenReturn(true);
 
@@ -174,7 +174,7 @@ class UserServiceTest {
         @DisplayName("should throw AlreadyExistsException when updating email to existing one")
         void shouldThrowWhenUpdateEmailExists() {
             withCurrentUser("01HUID", () -> {
-                UpdateUserCommand command = new UpdateUserCommand(null, null, "existing@example.com", 15);
+                UpdateUserCommand command = new UpdateUserCommand(null, null, "existing@example.com");
                 when(userRepository.findById("01HUID")).thenReturn(Optional.of(user));
                 when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
@@ -193,7 +193,7 @@ class UserServiceTest {
             withCurrentUser("01HUID", () -> {
                 when(userRepository.existsById("01HUID")).thenReturn(true);
 
-                userService.delete();
+                userService.delete("01HUID");
 
                 verify(userRepository).softDeleteById("01HUID");
             });
@@ -205,7 +205,7 @@ class UserServiceTest {
             withCurrentUser("01MISSING", () -> {
                 when(userRepository.existsById("01MISSING")).thenReturn(false);
 
-                assertThatThrownBy(() -> userService.delete()).isInstanceOf(NotFoundException.class);
+                assertThatThrownBy(() -> userService.delete("01MISSING")).isInstanceOf(NotFoundException.class);
             });
         }
     }

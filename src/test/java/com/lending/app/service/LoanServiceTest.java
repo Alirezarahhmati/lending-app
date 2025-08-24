@@ -83,7 +83,7 @@ class LoanServiceTest {
     class UpdateLoanTests {
         @Test
         void shouldUpdateLoanSuccessfully() {
-            UpdateLoanCommand command = new UpdateLoanCommand("loan1", 1L, "Loan 1", 1000L, 10, 0, 0);
+            UpdateLoanCommand command = new UpdateLoanCommand("loan1", "Loan 1", 1000L, 10, 0, 0);
             withLoan(() -> {
                 doNothing().when(loanMapper).apply(command, loan);
                 when(loanRepository.save(loan)).thenReturn(loan);
@@ -99,7 +99,7 @@ class LoanServiceTest {
 
         @Test
         void shouldThrowWhenLoanNotFound() {
-            UpdateLoanCommand command = new UpdateLoanCommand("loan1", 1L, "Loan 1", 1000L, 10, 0, 0);
+            UpdateLoanCommand command = new UpdateLoanCommand("loan1", "Loan 1", 1000L, 10, 0, 0);
             when(loanRepository.findById("loan1")).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> loanService.update(command))

@@ -23,8 +23,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -119,7 +117,7 @@ public class LoanControllerIntegrationTest {
         @Test
         @WithMockUser(username = "test", roles = "ADMIN")
         void testUpdateLoan() throws Exception {
-            UpdateLoanCommand updateCommand = new UpdateLoanCommand(savedLoanId, 0L, "Updated Loan", 3000L, 30, 10, 20);
+            UpdateLoanCommand updateCommand = new UpdateLoanCommand(savedLoanId, "Updated Loan", 3000L, 30, 10, 20);
 
             MvcResult updateResult = mockMvc.perform(put(baseUrl)
                             .contentType(MediaType.APPLICATION_JSON)

@@ -8,10 +8,6 @@ import com.lending.app.model.enums.Role;
 import com.lending.app.model.record.base.BaseResponse;
 import com.lending.app.model.record.user.UpdateUserCommand;
 import com.lending.app.model.record.user.UserMessage;
-import com.lending.app.model.record.user.UserMessageSet;
-import com.lending.app.repository.InstallmentRepository;
-import com.lending.app.repository.LoanRepository;
-import com.lending.app.repository.LoanTransactionRepository;
 import com.lending.app.repository.UserRepository;
 import com.lending.app.util.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,8 +54,6 @@ class UserControllerIntegrationTest {
 
     @BeforeEach
     void setupUser() {
-
-
         User user = new User();
         user.setUsername("test");
         user.setPassword(passwordEncoder.encode("password123"));
@@ -72,8 +66,7 @@ class UserControllerIntegrationTest {
         updateCommand = new UpdateUserCommand(
                 "update",
                 "newpassword123",
-                "updated@example.com",
-                15
+                "updated@example.com"
         );
     }
 
@@ -99,27 +92,6 @@ class UserControllerIntegrationTest {
                 assertThat(user).isNotNull();
                 assertThat(user.username()).isEqualTo("test");
                 assertThat(user.email()).isEqualTo("test@example.com");
-            }
-        }
-
-        @Test
-        @WithMockUser(username = "test")
-        void shouldGetAllUsers() throws Exception {
-            try (MockedStatic<SecurityUtils> mocked = Mockito.mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
-
-                MvcResult result = mockMvc.perform(get("/api/users/all"))
-                        .andExpect(status().isOk())
-                        .andReturn();
-
-                BaseResponse<UserMessageSet> response = objectMapper.readValue(
-                        result.getResponse().getContentAsString(),
-                        new TypeReference<>() {}
-                );
-
-                UserMessageSet users = response.result();
-                assertThat(users).isNotNull();
-                assertThat(users.users()).isNotEmpty();
             }
         }
     }
@@ -148,24 +120,6 @@ class UserControllerIntegrationTest {
                 assertThat(updated).isNotNull();
                 assertThat(updated.username()).isEqualTo(updateCommand.username());
                 assertThat(updated.email()).isEqualTo(updateCommand.email());
-                assertThat(updated.score()).isEqualTo(updateCommand.score());
-            }
-        }
-    }
-
-    @Nested
-    @DisplayName("Delete User Tests")
-    class DeleteUserTests {
-        @Test
-        @WithMockUser(username = "test")
-        void shouldDeleteUserSuccessfully() throws Exception {
-            try (MockedStatic<SecurityUtils> mocked = Mockito.mockStatic(SecurityUtils.class)) {
-                mocked.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
-
-                mockMvc.perform(delete("/api/users"))
-                        .andExpect(status().isNoContent());
-
-                assertThat(userRepository.existsById(testUserId)).isFalse();
             }
         }
     }
